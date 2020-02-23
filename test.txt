@@ -1,0 +1,110 @@
+<html><head>
+<script language="JavaScript">
+		function newWindow() 
+		{
+		  window.open("","VanOpt","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no,width=430,height=470");
+		  window.name = "main";
+		}
+		</script>
+<script language="JavaScript">
+<!--
+function setTarget(target){
+if(target == 0) document.frmSearchOp.action="resultsupv.asp";
+if(target == 1) document.frmSearchOp.action="resultescp.asp";
+}
+//-->
+</script>
+<meta content="text/html;charset=utf-8" http-equiv="content-type"/>
+<meta content="Department of Correction." name="copyright"/>
+<meta content="http://www.ct.gov/doc/" name="alias"/>
+<meta content="PMG/Department of Correction" name="author"/>
+<meta content="Content: Contact PeiTi Lee / Department of Correction" name="owner"/>
+<title>Department of Correction Inmate Information Search</title>
+<style language="javascript">
+		/* Top Navigation */
+.nounderline { 
+			
+			font-family: 'Verdana,Arial,Geneva';
+		font-size: 10pt;
+			}
+a.nounderline:link {color: #ffffff; text-decoration: none}
+a.nounderline:visited {color: #ffffff; text-decoration: none}
+a.nounderline:hover {text-decoration: underline}
+a:link.topnav {color: #ffffff; text-decoration: none}
+		</style>
+</head>
+<body style="margin:0;padding:0">
+<div align="center">
+<!--<img src="Images/ctgov_banner.gif" title="CT.gov Logo" alt="CT.gov Logo" usemap="#ctgovMap" />
+<img src="Images/doc_banner.gif" title="CT.gov Logo" alt="CT.gov Logo" usemap="#DOCMap"/>-->
+<!-- above lines are portal doc hearder -->
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="900">
+<tbody><tr>
+<td><object alt="CT.gov Logo" data="Images/ctgov_banner.gif" style="width:100%;" title="CT.gov Logo" usemap="#ctgovMap"></object>
+<object alt="CT.gov Logo" data="Images/doc_banner.gif" style="width:100%;" title="CT.gov Logo" usemap="#DOCMap"></object>
+<map name="ctgovMap">
+<area alt="CT-Gov" coords="0,0,260,53" href="http://portal.ct.gov/" shape="rect"/>
+</map>
+<map name="DOCMap">
+<area alt="DOC" coords="0,0,100,110" href="http://portal.ct.gov/DOC" shape="rect"/>
+</map>
+</td>
+</tr>
+<tr>
+<td align="center" bgcolor="#FFFFFF" height="15" valign="top"><h2>Offender
+          Information Search</h2>
+<form id="frmSearchOp" method="POST" name="frmSearchOp" onsubmit="return setTarget(this)">
+<table border="0" cellpadding="1" cellspacing="0" summary="Inmate information search options." width="600">
+<colgroup>
+<col 'verdana,arial,geneva'"="" align="left" font-family:="" style="font-weight: bold" valign="top" width="60%"/>
+<col align="left" style="font-family: 'Verdana,Arial,Geneva'" valign="top" width="40%"/>
+</colgroup>
+<tbody><tr><td colspan="2">Please enter the search criteria in one or more of the following fields:</td></tr>
+<tr><td colspan="2"><font color="#FF0000">(Enter only the inmate number OR only the first few letters of the last name for better search results.)</font></td></tr>
+<tr><td colspan="2"><hr/></td></tr>
+<tr><td>CT DOC Inmate Number:      </td><td nowrap=""><input maxlength="8" name="id_inmt_num" size="16" type="text"/></td></tr>
+<tr><td>Last Name:                 </td><td nowrap=""><input maxlength="16" name="nm_inmt_last" size="16" type="text"/></td></tr>
+<tr><td>First Name:                </td><td nowrap=""><input maxlength="16" name="nm_inmt_first" size="16" type="text"/></td></tr>
+<tr><td>Date of Birth (mm/dd/yyyy):</td><td nowrap=""><input maxlength="10" name="dt_inmt_birth" size="16" type="text"/></td></tr>
+<tr><td colspan="2"><hr/></td></tr>
+<tr><td align="center" colspan="2">
+<input id="submit1" name="submit1" onclick="setTarget(0)" style="font-weight:bold; color: #000080; width: 15em" title="Search All Inmates" type="submit" value="Search All Inmates"/>
+<!--	<input type="submit" onClick="setTarget(1)" value="Search Escaped Inmates" title="Search Escaped Inmates" id="submit2" name="submit2" style="font-weight:bold; color: #000080; width: 15em"> -->
+<input id="reset1" name="reset1" style="font-weight:bold; color: #000080; width: 15em" title="Clear Criteria" type="reset" value="Clear Criteria"/>
+</td></tr>
+</tbody></table>
+</form>
+</td>
+</tr>
+</tbody></table>
+<table align="center" cellpadding="1" cellspacing="0" summary="Inmate information disclaimer." width="800">
+<tbody><tr><td>If you have trouble searching the offender information, click <a href="searchhints.htm">Search Hints</a> for help.<br/><br/></td></tr>
+<tr><td><h2 align="center">Disclaimer: Please Read Carefully!</h2></td></tr>
+<tr><td>Information regarding offenders currently incarcerated with the Connecticut Department of Correction is made available
+    as a public service and in the interest of public safety.
+    <font color="#FF0000">It is extremely important to note that a person's current incarceration does not necessarily indicate they have been convicted of a crime,
+    as Connecticut's correctional system also holds those who are awaiting trial. </font> 
+The Connecticut Department of Correction updates this information regularly, to
+    ensure that it is complete and accurate. However, 
+this information may change quickly. You are cautioned that the information on this site  
+may not reflect the current status regarding an offender.  Due to possible changes in the application of Risk Reduction Earned Credits, release dates may be subject to change.  And, due to limitations within our current computer system we cannot process all the statutes with their respective subsections.  Information regarding offenders
+    held under Connecticut's Youthful Offender Statute and offenders held on behalf of the
+    U.S. Immigration
+    and Customs Enforcement is not included in this database at this time.
+<!--<br><br><font color=#FF0000>Please note, if the inmate location is listed as PO followed by a number and a name, it indicates supervision by a parole officer at a regional parole office.
+    These are listed on the <a href="http://www.ct.gov/doc/cwp/view.asp?a=1503&q=265536">Parole and Community Services page</a>.</font>
+-->
+<br/><br/>Questions about the status of inmates being held on U.S. Immigration and
+    Customs Enforcement detainers
+should be referred to the ICE regional office at 617-565-4946.
+<br/><br/>
+For comments and questions, you may contact:
+<p style="text-align: center">Connecticut Department of Correction<br/>
+Public Information Office<br/>
+24 Wolcott Hill Road<br/>
+Wethersfield, CT 06109<br/>
+Phone: 860-692-7780<br/></p>
+</td></tr>
+</tbody></table>
+</div>
+</body></html>
