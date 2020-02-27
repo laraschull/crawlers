@@ -16,6 +16,7 @@ listOfTables = soup.findAll("table")
 inmateTable = listOfTables[1]
 body = inmateTable.find("tbody")
 listOfInmates = body.findAll("tr")
+
 for x in range(1, 6):
 
     time.sleep(5)

@@ -5,7 +5,6 @@ class Facility:
         self.name = name
         self.generatedID = 1  # change once database is queried
 
-
     def getName(self):
 
         return self.name

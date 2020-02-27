@@ -30,7 +30,6 @@ def inmateRowToList(htmlRow):
 
     # set or find generated ID (deal w/ later)
 
-
     # facility.queryID(), implement once database is set up
     fID = facility.getGeneratedID()
     record.setFacilityID(fID)
