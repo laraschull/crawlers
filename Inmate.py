@@ -9,5 +9,6 @@ class Inmate:
         self.firstNames = ""
         self.lastName = ""
         self.DOB = None
-        self.records = []
+
+        self.records = [] #list of any previous records
 

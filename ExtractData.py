@@ -6,6 +6,7 @@ from datetime import datetime
 
 def inmateRowToList(htmlRow):
 
+    #currently still html
     cells = htmlRow.findAll("td")
     parsedData = []
 
@@ -26,7 +27,7 @@ def inmateRowToList(htmlRow):
     # set inmate DOB
     strDOB = str(parsedData[2]).strip()
     listDOB = strDOB.split("/")
-    inmate.DOB = datetime(int(listDOB[2]), int(listDOB[0]), int(listDOB[1]))
+    inmate.DOB = datetime(int(listDOB[2]), int(listDOB[0]), int(listDOB[1])) #year, month, day
 
     # set or find generated ID (deal w/ later)
 
@@ -42,11 +43,10 @@ def inmateRowToList(htmlRow):
 
 
 
-
-
-exampleString = '<tr><td><a href="detailsupv.asp?id_inmt_num=269154">269154</a></td><td>AARONS,VINCENT PETER     </td>' \
-                '<td>12/7/1964</td><td>WILLARD-CYBULSKI CI                     </td></tr>'
-
-html = BeautifulSoup(exampleString, 'html.parser')  # convert to html before passing to func to mimic website
-
-inmateRowToList(html)
+#example output below
+# exampleString = '<tr><td><a href="detailsupv.asp?id_inmt_num=269154">269154</a></td><td>Doe, Joe     </td>' \
+#                 '<td>12/7/1964</td><td>WILLARD-CYBULSKI CI                     </td></tr>'
+#
+# html = BeautifulSoup(exampleString, 'html.parser')  # convert to html before passing to func to mimic website
+#
+# inmateRowToList(html)
