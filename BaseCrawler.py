@@ -4,7 +4,7 @@ import time
 import ExtractData
 
 url = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
-browser = webdriver.Chrome()
+browser = webdriver.Chrome()  # maybe look into a more stripped down, efficient driver?
 browser.set_page_load_timeout(10)
 browser.get(url)
 time.sleep(5)

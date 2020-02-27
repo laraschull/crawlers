@@ -48,6 +48,6 @@ def inmateRowToList(htmlRow):
 exampleString = '<tr><td><a href="detailsupv.asp?id_inmt_num=269154">269154</a></td><td>AARONS,VINCENT PETER     </td>' \
                 '<td>12/7/1964</td><td>WILLARD-CYBULSKI CI                     </td></tr>'
 
-html = BeautifulSoup(exampleString, 'html.parser') #convert to html before passing to func to mimic website)
+html = BeautifulSoup(exampleString, 'html.parser')  # convert to html before passing to func to mimic website
 
 inmateRowToList(html)
