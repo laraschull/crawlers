@@ -1,11 +1,9 @@
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from Inmate import Inmate
 from InmateRecord import InmateRecord
 from Facility import Facility
 from datetime import datetime
 from writeToCSV import write
-import time
 
 baseUrl = "http://www.ctinmateinfo.state.ct.us/"
 
@@ -22,28 +20,7 @@ def inmateRowToList(htmlRow, browser):
     record = InmateRecord()  # inmate current record
     facility = Facility()
 
-    # set inmate name
-    # allNames = str(parsedData[1]).strip()
-    # listOfNames = allNames.split(",")
-    # inmate.lastName = listOfNames[0]
-    # inmate.firstNames = listOfNames[1]
-    # inmate.id = cells[0].find('a').text
-    #
-    # # set inmate DOB
-    # strDOB = str(parsedData[2]).strip()
-    # listDOB = strDOB.split("/")
-    # inmate.DOB = datetime(int(listDOB[2]), int(listDOB[0]), int(listDOB[1])) #year, month, day
-    #
-    # # set or find generated ID (deal w/ later)
-    #
-    # # facility.queryID(), implement once database is set up
-    # fID = facility.getGeneratedID()
-    # record.setFacilityID(fID)
-    #
-    # print(inmate.firstNames)
-    # print(inmate.lastName)
-    # print(inmate.DOB)
-    # print("\n")
+    # get inmate information
     url = baseUrl + cells[0].find('a')['href']
     browser.set_page_load_timeout(10)
     browser.get(url)
@@ -51,15 +28,18 @@ def inmateRowToList(htmlRow, browser):
     source = browser.page_source
     soup = BeautifulSoup(source, 'html.parser')
     listOfTables = soup.find("tbody").find('tbody')
-    # print(listOfTables)
+
+    # loop thru table of inmate's information
     for rows in listOfTables.find_all_next("tr"):
         allTd = rows.findAll('td')
+
         try:
             entry = allTd[0].text.strip()
             value = allTd[1].text.strip()
         except IndexError:
             print("Not a valid table entry field")
             continue
+
         if entry == "Inmate Number:":
             inmate.id = value
         elif entry == "Inmate Name:":
@@ -91,19 +71,5 @@ def inmateRowToList(htmlRow, browser):
         elif entry == "Headshot":
             inmate.headshot = value
 
-        # print(entry.text)
-        # print(value.text)
     write(inmate, record, facility)
     # time.sleep(5)
-
-
-
-
-
-#example output below
-# exampleString = '<tr><td><a href="detailsupv.asp?id_inmt_num=269154">269154</a></td><td>Doe, Joe     </td>' \
-#                 '<td>12/7/1964</td><td>WILLARD-CYBULSKI CI                     </td></tr>'
-#
-# html = BeautifulSoup(exampleString, 'html.parser')  # convert to html before passing to func to mimic website
-#
-# inmateRowToList(html)

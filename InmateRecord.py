@@ -1,5 +1,3 @@
-import datetime
-
 class InmateRecord:
 
     def __init__(self):
@@ -14,12 +12,3 @@ class InmateRecord:
         self.bondAmt = None
         self.status = ""
         self.offense = ""
-
-
-    def getFacilityID(self):
-
-        return self.facilityID
-
-    def setFacilityID(self, i):
-
-        self.facilityID = i

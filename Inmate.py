@@ -1,10 +1,6 @@
-import datetime
-
 class Inmate:
 
-
     def __init__(self):
-
         self.generatedID = None
         self.firstNames = ""
         self.lastName = ""
@@ -15,4 +11,3 @@ class Inmate:
         self.sex = None
         self.race = None
         self.headshot = None
-

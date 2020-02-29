@@ -1,7 +1,6 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from writeToCSV import writeheader
-import time
 import ExtractData
 from string import ascii_lowercase
 
@@ -35,15 +34,12 @@ for s in ascii_lowercase:
     # find all rows with inmates
     listOfInmates = body.findAll("tr")
 
-    # taking rows 2-7
-    # first row is header, so skip
+    # skip first dummy row
 
     for x in range(1, len(listOfInmates)-1):
 
-        # allows time to go through db to avoid getting IP banned due to suspcious activity
         # time.sleep(5)
         currentRow = listOfInmates[x]
         ExtractData.inmateRowToList(currentRow, browser)
-    # print(soup.body)
-    # time.sleep(10)
+
 browser.quit()
