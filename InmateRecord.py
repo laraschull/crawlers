@@ -1,7 +1,6 @@
 class InmateRecord:
 
     def __init__(self):
-
         self.generatedID = None
         self.inmateNumber = None
         self.admissionDate = None

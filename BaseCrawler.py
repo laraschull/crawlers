@@ -8,7 +8,6 @@ browser = webdriver.Chrome()
 writeheader()
 
 for s in ascii_lowercase:
-
     # opening up browser
     url = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
     # maybe look into a more stripped down, efficient driver?
@@ -37,7 +36,6 @@ for s in ascii_lowercase:
     # skip first dummy row
 
     for x in range(1, len(listOfInmates)-1):
-
         # time.sleep(5)
         currentRow = listOfInmates[x]
         ExtractData.inmateRowToList(currentRow, browser)
