@@ -9,7 +9,7 @@ writeheader()
 
 for s in ascii_lowercase:
     # opening up browser
-    url = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
+    url = ""
     # maybe look into a more stripped down, efficient driver?
     browser.set_page_load_timeout(10)
     browser.get(url)
