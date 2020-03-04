@@ -1,3 +1,6 @@
+from selenium import webdriver
+from writeToCSV import writeheader
+from string import ascii_lowercase
 from bs4 import BeautifulSoup
 from Inmate import Inmate
 from InmateRecord import InmateRecord
@@ -5,7 +8,46 @@ from Facility import Facility
 from datetime import datetime
 from writeToCSV import write
 
+browser = webdriver.Chrome()
+writeheader()
+
 baseUrl = "http://www.ctinmateinfo.state.ct.us/"
+
+def baseCrawler():
+    for s in ascii_lowercase:
+        # opening up browser
+
+        # maybe look into a more stripped down, efficient driver?
+        browser.set_page_load_timeout(10)
+        browser.get(baseUrl)
+        # time.sleep(5)
+
+        # searching for inmate last names with A
+        browser.find_element_by_name("nm_inmt_last").send_keys(s)
+        browser.find_element_by_name("submit1").click()
+        source = browser.page_source
+
+        # begin parsing html with beautiful soup
+        soup = BeautifulSoup(source, 'html.parser')
+        listOfTables = soup.findAll("table")
+
+        # need to start at 1 because first table is headers
+        inmateTable = listOfTables[1]
+
+        # where data is
+        body = inmateTable.find("tbody")
+
+        # find all rows with inmates
+        listOfInmates = body.findAll("tr")
+
+        # skip first dummy row
+
+        for x in range(1, len(listOfInmates)-1):
+            # time.sleep(5)
+            currentRow = listOfInmates[x]
+            inmateRowToList(currentRow, browser)
+
+    browser.quit()
 
 def inmateRowToList(htmlRow, browser):
     #currently still html
@@ -73,3 +115,5 @@ def inmateRowToList(htmlRow, browser):
 
     write(inmate, record, facility)
     # time.sleep(5)
+
+baseCrawler()
