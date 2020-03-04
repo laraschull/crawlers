@@ -11,7 +11,7 @@ from writeToCSV import write
 browser = webdriver.Chrome()
 writeheader()
 
-baseUrl = "http://www.ctinmateinfo.state.ct.us/"
+baseUrl = ""
 
 def baseCrawler():
     for s in ascii_lowercase:
