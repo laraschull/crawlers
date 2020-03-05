@@ -7,11 +7,12 @@ from InmateRecord import InmateRecord
 from Facility import Facility
 from datetime import datetime
 from writeToCSV import write
+from time import time
 
 browser = webdriver.Chrome()
 writeheader()
 
-baseUrl = ""
+baseUrl = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
 
 def baseCrawler():
     for s in ascii_lowercase:
@@ -63,7 +64,7 @@ def inmateRowToList(htmlRow, browser):
     facility = Facility()
 
     # get inmate information
-    url = baseUrl + cells[0].find('a')['href']
+    url = "http://www.ctinmateinfo.state.ct.us/" + cells[0].find('a')['href']
     browser.set_page_load_timeout(10)
     browser.get(url)
 
