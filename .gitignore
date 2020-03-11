@@ -3,3 +3,6 @@ venv/
 .idea/
 __pycache__
 *.csv
+*.pyc
+.vscode/
+test.csv
