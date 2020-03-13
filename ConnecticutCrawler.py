@@ -1,16 +1,19 @@
+# @author gabriel_saruhashi
+# Created at: March 11, 2020
+# Last updated at: March 11, 2020
+
 from selenium import webdriver
-from writeToCSV import writeheader
 from string import ascii_lowercase
 from bs4 import BeautifulSoup
-from Inmate import Inmate
-from InmateRecord import InmateRecord
-from Facility import Facility
+from models.Inmate import Inmate
+from models import InmateRecord
+from models import Facility
 from datetime import datetime
-from writeToCSV import write
+from utils import csv_utils
 from time import time
 
-browser = webdriver.Chrome()
-writeheader()
+browser = webdriver.Chrome('./chromedriver')
+csv_utils.writeheader()
 
 baseUrl = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
 
@@ -114,7 +117,7 @@ def inmateRowToList(htmlRow, browser):
         elif entry == "Headshot":
             inmate.headshot = value
 
-    write(inmate, record, facility)
+    csv_utils.write(inmate, record, facility)
     # time.sleep(5)
 
 baseCrawler()
