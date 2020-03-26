@@ -6,59 +6,53 @@ from models.Date import Date
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
-from datetime import datetime
 from utils import csv_utils
-import time
 import re
-from pymongo import MongoClient
-from utils.identifier import *
 from utils.updater import *
 
-browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe")
-csv_utils.writeheader()
+browser = webdriver.Chrome() # Jim, put extension in
 
-baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
-client = MongoClient('localhost', 27017)
-db = client.inmate_database
+# baseUrl =
 
-def baseCrawler():
+def baseCrawler(last, first):
     # opening up browser
     browser.set_page_load_timeout(20)
     browser.get(baseUrl)
     
     # get past info page
-    browser.find_element_by_name("submit2").click()
-    for s in ascii_lowercase:
+    # browser.find_element_by_name("submit2").click()
 
-        print("Scraping inmate records whose last name start with {}".format(s.upper()))
-        
-        # searching for inmate last names that start with certain character
-        browser.find_element_by_name("vLastName").send_keys(s)
-        browser.set_page_load_timeout(10)
-        browser.find_element_by_name("NextButton2").click()
+    # searching for inmate last names that start with certain character
+    # lastNameBar = find in HTML
+    browser.find_element_by_name(lastNameBar).send_keys(last)
+    # firstNameBar = find in HTML
+    browser.find_element_by_name(firstNameBar).send_keys(first)
+    browser.set_page_load_timeout(10)
+    # searchButton = find in HTML
+    browser.find_element_by_name(searchButton).click()
 
-        # begin parsing html with beautiful soup
-        num_profiles = len(browser.find_elements_by_xpath("//input[@value='View Offender Info']"))
-        pages = browser.find_element_by_xpath("//span[@class='oq-nav-btwn']").text.split('of ')[-1]
-        
-        for v in range(0, int(pages)): 
-            for i in range(0, num_profiles):
+    # begin parsing html with beautiful soup
+    num_profiles = len(browser.find_elements_by_xpath("//input[@value='View Offender Info']"))
+    pages = browser.find_element_by_xpath("//span[@class='oq-nav-btwn']").text.split('of ')[-1]
 
-                profile = browser.find_elements_by_xpath("//input[@value='View Offender Info']")[i]
-                browser.set_page_load_timeout(10)
-                profile.click()
+    for v in range(0, int(pages)):
+        for i in range(0, num_profiles):
 
-                soup = BeautifulSoup(browser.page_source, 'html.parser')
-                name = saveInmateProfile(soup, browser)
-                print("PAGE {}: Done saving record {}/{}: {}".format(v, i, num_profiles, name))
-            
-            # go to next page
+            profile = browser.find_elements_by_xpath("//input[@value='View Offender Info']")[i]
             browser.set_page_load_timeout(10)
-            browser.find_element_by_id('oq-nav-nxt').click()
-        
-        # return to home page for the next character
-        back_btn = browser.find_element_by_xpath("//span[text()='Start a New Search']")
-        back_btn.find_element_by_xpath('..').click()
+            profile.click()
+
+            soup = BeautifulSoup(browser.page_source, 'html.parser')
+            name = saveInmateProfile(soup, browser)
+            print("PAGE {}: Done saving record {}/{}: {}".format(v, i, num_profiles, name))
+
+        # go to next page
+        browser.set_page_load_timeout(10)
+        browser.find_element_by_id('oq-nav-nxt').click()
+
+    # return to home page for the next character
+    back_btn = browser.find_element_by_xpath("//span[text()='Start a New Search']")
+    back_btn.find_element_by_xpath('..').click()
 
     browser.quit()
 
@@ -147,20 +141,7 @@ def saveInmateProfile(soup, browser):
             record.inmateNumber = inmateID
             inmate.addRecord(record)
 
-    if(db.inmates.count_documents({"_id": generate_inmate_id(inmate)}) == 0):  # insert new inmate
-        print("new inmate")
-        db.inmates.insert_one(inmate.getDict())
-    else:  # update existing inmate
-        print("repeat inmate")
-        updateInmate(inmate)  # from utils.updater
-
-    for rec in inmate.records:
-        if (db.records.count_documents({"_id": rec.getGeneratedID()}) == 0):  # insert new record
-            print("new record")
-            db.records.insert_one(rec.getDict())
-        else:  # update existing record
-            print("repeat record")
-            updateRecord(record)  # from utils.updater
+    writeToDB(inmate)
 
 
 
