@@ -17,6 +17,7 @@ class InmateRecord:
         self.sentenceDate = None
         self.maxReleaseDate = None
         self.estReleaseDate = None
+        self.facility = None
         self.facilityID = None  # db key!
         self.state = None
         self.bondAmt = None
@@ -62,4 +63,6 @@ class InmateRecord:
             "offense": self.offense,
         }
 
-
+    def addFacility(self, facility):
+        self.facilityID = facility.getGeneratedID()
+        self.facility = facility
