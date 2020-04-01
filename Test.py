@@ -52,7 +52,6 @@ def baseCrawler(last_name, first_name):
             # SOMEHOW GO BACK TO ORIGINAL SEARCH PAGE
 
             soup = BeautifulSoup(browser.page_source, 'html.parser')
-            print(soup)
             name = saveInmateProfile(soup, browser)
             print("Done saving record of", name)
             # browser.quit()
@@ -69,14 +68,12 @@ def baseCrawler(last_name, first_name):
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    # record.state = "XX"
-    facility = Facility()
+    record.state = "Alabama"
+    facility = Facility()   # current facility info
 
-    # idName = find in HTML
-    inmateID = soup.find(id="MainContent_DetailsView2_Label2").get_text()  # find inmate ID, will go in active record
+    # inmate id specific to alabama
+    inmateID = soup.find(id="MainContent_DetailsView2_Label2").get_text()
 
-    # find inmate name
-    # name = find in HTML
     # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
     # finds text that includes "NAME:, for example; regex"
     name = soup.find(id="MainContent_DetailsView2_Label1").get_text()
@@ -86,80 +83,113 @@ def saveInmateProfile(soup, browser):
     middleName = "" if len(firstNames[1:]) == 0 else " ".join(firstNames[1:])
     inmate.name = Name(firstName, middleName, lastName)
 
-    # find way to parse and collect rest of info; will vary with different crawlers
+    # get info off profile pages
+    info = soup.findAll('table')
 
-    #Georgia example:
+    # facility names
+    facility.name = info[0].find(id="MainContent_DetailsView2_Label3").get_text()
+    facility.state = record.state
+    record.facilityID = facility.generatedID
 
-    info = soup.findAll('td')
-    print(info)
-    caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
-    recordCounter = 0
-    for row in info:
-        if row and 'class="offender"' in str(row):
-            data = row.text.split('\n')
-            data = map(str.strip, data)
-            data = list(filter(None, data))
+    # caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
+    # recordCounter = 0
 
-            # past convictions
-            if any("SENTENCE LENGTH" in s for s in data):
+    for i in range(len(info)):
+        if i == 1:
+            count = 0
+            for row in info[1]:
+                # skip first dummy row
 
-                for info in data:
-                    try:
-                        entry, value = info.split(': ')
-                    except:
-                        continue
-                    if entry == 'OFFENSE':
-                        past_record = InmateRecord()
-                        past_record.inmateNumber = inmateID
-                        past_record.status = RecordStatus.INACTIVE
-                        past_record.state = "GA"
-                        past_record.offense = value
-                    elif entry == 'CRIME COMMIT DATE':
-                        past_record.sentenceDate = Date(value)
-                    elif entry == 'SENTENCE LENGTH':
-                        past_record.estReleaseDate = past_record.sentenceDate
+                if count != 1:
+                    count += 1
+                else:
+                    for trait in row:
                         try:
-                            (paramY, paramM, paramD) = [int(x.strip().split()[0]) for x in value.split(",")]
-                        except(ValueError):
-                            (paramY, paramM, paramD) = (None, None, None)
-                        past_record.estReleaseDate.addTime(paramY, paramM, paramD)
-                        past_record.estReleaseDate.estimated = True
-                        past_record.recordNumber = caseNumbers[recordCounter]
-                        inmate.addRecord(past_record)
-                        recordCounter += 1
+                            lines = trait.text.split('\n')
+                            traits = lines[1].split(":")
+                        except NameError:
+                            continue
+                        if traits[0] == "Race":
+                            inmate.race = traits[1]
+                        elif traits[0] == "Sex":
+                            inmate.sex = traits[1]
+                        elif traits[0] == "Hair Color":
+                            inmate.hairColor = traits[1]
+                        elif traits[0] == "Eye Color":
+                            inmate.eyeColor = traits[1]
+                        elif traits[0] == "Height":
+                            inmate.height = traits[1]
+                        elif traits[0] == "Birth Year":
+                            inmate.DOB = Date(traits[1], None, None, True)
+                        elif traits[0] == "Sex":
+                            inmate.sex = traits[1]
 
-            # information about current conviction
-            else:
-                for trait in data:
-                    try:
-                        entry, value = trait.split(': ')
-                    except:
-                        continue
-                    if entry == 'RACE':
-                        inmate.race = value
-                    elif entry == 'GENDER':
-                        inmate.sex = value
-                    elif entry == 'HEIGHT':
-                        inmate.height = value
-                    elif entry == 'EYE COLOR':
-                        inmate.eyeColor = value
-                    elif entry == 'YOB':
-                        inmate.DOB = Date(value)
-                    elif entry == 'WEIGHT':
-                        inmate.weight = value
-                    elif entry == 'HAIR COLOR':
-                        inmate.hairColor = value
-                    elif entry == 'MOST RECENT INSTITUTION':
-                        facility.name = value
-                        facility.state = record.state
-                        record.addFacility(facility)
-                    elif entry == 'MAX POSSIBLE RELEASE DATE':
-                        record.maxReleaseDate = Date(value)
-                        record.status = RecordStatus.ACTIVE
-            record.recordNumber = caseNumbers[0]
-            record.status = RecordStatus.ACTIVE
-            record.inmateNumber = inmateID
-            inmate.addRecord(record)
+        # for row in info[i]:
+        #     if row and 'class="offender"' in str(row):
+        #         data = row.text.split('\n')
+        #         data = map(str.strip, data)
+        #         data = list(filter(None, data))
+        #
+        #         # past convictions
+        #         if any("SENTENCE LENGTH" in s for s in data):
+        #
+        #             for info in data:
+        #                 try:
+        #                     entry, value = info.split(': ')
+        #                 except:
+        #                     continue
+        #                 if entry == 'OFFENSE':
+        #                     past_record = InmateRecord()
+        #                     past_record.inmateNumber = inmateID
+        #                     past_record.status = RecordStatus.INACTIVE
+        #                     past_record.state = "GA"
+        #                     past_record.offense = value
+        #                 elif entry == 'CRIME COMMIT DATE':
+        #                     past_record.sentenceDate = Date(value)
+        #                 elif entry == 'SENTENCE LENGTH':
+        #                     past_record.estReleaseDate = past_record.sentenceDate
+        #                     try:
+        #                         (paramY, paramM, paramD) = [int(x.strip().split()[0]) for x in value.split(",")]
+        #                     except(ValueError):
+        #                         (paramY, paramM, paramD) = (None, None, None)
+        #                     past_record.estReleaseDate.addTime(paramY, paramM, paramD)
+        #                     past_record.estReleaseDate.estimated = True
+        #                     past_record.recordNumber = caseNumbers[recordCounter]
+        #                     inmate.addRecord(past_record)
+        #                     recordCounter += 1
+        #
+        #         # information about current conviction
+        #         else:
+        #             for trait in data:
+        #                 try:
+        #                     entry, value = trait.split(': ')
+        #                 except:
+        #                     continue
+        #                 if entry == 'RACE':
+        #                     inmate.race = value
+        #                 elif entry == 'GENDER':
+        #                     inmate.sex = value
+        #                 elif entry == 'HEIGHT':
+        #                     inmate.height = value
+        #                 elif entry == 'EYE COLOR':
+        #                     inmate.eyeColor = value
+        #                 elif entry == 'YOB':
+        #                     inmate.DOB = Date(value)
+        #                 elif entry == 'WEIGHT':
+        #                     inmate.weight = value
+        #                 elif entry == 'HAIR COLOR':
+        #                     inmate.hairColor = value
+        #                 elif entry == 'MOST RECENT INSTITUTION':
+        #                     facility.name = value
+        #                     facility.state = record.state
+        #                     record.addFacility(facility)
+        #                 elif entry == 'MAX POSSIBLE RELEASE DATE':
+        #                     record.maxReleaseDate = Date(value)
+        #                     record.status = RecordStatus.ACTIVE
+        #         record.recordNumber = caseNumbers[0]
+        #         record.status = RecordStatus.ACTIVE
+        #         record.inmateNumber = inmateID
+        #         inmate.addRecord(record)
 
 
     # saves profile to the database
@@ -171,13 +201,6 @@ def saveInmateProfile(soup, browser):
     # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
-#
-#
-# """
+
 # TESTS:
-#
-# baseCrawler(last, first)
-# ...
-#
-# """
 baseCrawler("Adams", "")
