@@ -6,11 +6,12 @@ from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
 import re
+import math
 from utils.updater import *
 
 browser = webdriver.Chrome() # Jim, put extension in
 
-# baseUrl =
+baseUrl = "https://apps.ark.org/inmate_info/index.php"
 
 def baseCrawler(last, first):
     # opening up browser
@@ -19,21 +20,70 @@ def baseCrawler(last, first):
 
     # searching for inmate last names that start with certain character
     # lastNameBar = find in HTML
-    browser.find_element_by_name(lastNameBar).send_keys(last)
+    browser.find_element_by_name("lastname").send_keys(last)
     # firstNameBar = find in HTML
-    browser.find_element_by_name(firstNameBar).send_keys(first)
+    browser.find_element_by_name("firstname").send_keys(first)
     browser.set_page_load_timeout(10)
     # searchButton = find in HTML
-    browser.find_element_by_name(searchButton).click()
+    browser.find_element_by_name("disclaimer").click()
+    browser.find_element_by_name("B1").click()
 
     # begin parsing html with beautiful soup
+
+    source = browser.page_source
+    soup = BeautifulSoup(source, 'html.parser')
+    
     # profileXPath = find in HTML (path to clickable link for each person)
-    profileList = browser.find_elements_by_xpath(profileXPath)
+    
+    
+    numResultsList = re.sub(r'[^a-zA-Z0-9 ]', '',browser.find_element_by_xpath(
+        "//*[@id='appContent']/div/center/table/tbody/tr/td/div/center/table/tbody/tr[10]/td/div/table/tbody/tr[1]/td/table/tbody/tr/td[2]/font/b/span").text).split()
+    
+    
+    numPages = math.ceil(int(numResultsList[0])/50)
+    tableLength = int(numResultsList[-1]) - int(numResultsList[-3]) + 1
+    
+    listOfTables = soup.findAll("table")
+    inmateTable = listOfTables[1]
+    inmates = (inmateTable.findAll("tr"))[9].findAll("tr")[5:5+tableLength]
+    #print(inmates)
+    
+    profileList = []
+    for i in range(len(inmates)):
+        profileList.append( browser.find_elements_by_xpath(
+            "//*[@id='appContent']/div/center/table/tbody/tr/td/div/center/table/tbody/tr[10]/td/div/table/tbody/tr[3]/td/table/tbody/tr[" + str(i+2) + "]/td[3]/a"))
+    
+    
+#    for j in range(numPages):
 
-    while True:
-        for i in range(len(profileList)):
+    
+    #print(profileList)
 
-            profile = profileList[i]
+    
+    
+    for i in range(len(profileList)):
+        
+        profile = profileList[i][0]
+        #print(profile.get_attribute('innerHTML'))
+        browser.set_page_load_timeout(10)
+        profile.click()
+
+        soup = BeautifulSoup(browser.page_source, 'html.parser')
+        name = saveInmateProfile(soup, browser)
+        print(name)
+        print("Done saving record with name")
+        #driver.navigate().back()
+    
+
+    browser.quit()
+    
+    """
+
+    while False:
+        for i in range(1):
+
+            profile = profileList[0]
+            print(profile)
             browser.set_page_load_timeout(10)
             profile.click()
 
@@ -49,21 +99,24 @@ def baseCrawler(last, first):
         # implement way to break loop if on the last page (ex. "next" button attribute)
         if True:
             break
+    
+    """
 
-    browser.quit()
 
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    # record.state = "XX"
+    record.state = "AR"
     facility = Facility()
 
     # idName = find in HTML
-    inmateID = soup.find(idName).get_text()  # find inmate ID, will go in active record
-
-    # find inmate name
+    #inmateID = soup.find(idName).get_text()  # find inmate ID, will go in active record
+    name = browser.find_element_by_xpath("//*[@id='appContent']/div/center/table/tbody/tr/td/div/center/table/tbody/tr[12]/td/div/center/table/tbody/tr/td[2]/table/tbody/tr[2]/td[3]/font").text    # find inmate name
     # name = find in HTML
-    # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
+    # EX: name = soup.find('h4', text = re.compile('Name:.*')).get_text().strip('Name:').strip()
+    #name = soup.find('tr', text = re.compile('Name:.*')).get_text().strip('Name:').strip()
+    #name = soup.find("Name:").get_text()
+    #print(name)
     # finds text that includes "NAME:, for example; regex"
     lastName, firstNames = name.split(',')  # only if "last, first" order; otherwise vice versa
     firstNames = firstNames.split()
@@ -73,6 +126,42 @@ def saveInmateProfile(soup, browser):
     
 
     # find way to parse and collect rest of info; will vary with different crawlers
+
+    # facility names
+    facility.name = browser.find_element_by_xpath("//*[@id='appContent']/div/center/table/tbody/tr/td/div/center/table/tbody/tr[12]/td/div/center/table/tbody/tr/td[2]/table/tbody/tr[11]/td[3]/font").text
+    facility.state = record.state
+    #record.facilityID = facility.generatedID
+
+    info = soup.findAll('table')
+    #print(info[0])
+    
+    for row in info[3].findAll('tr'):
+        col_num = 0
+        columns = row.findAll('td')
+        #print(len(columns))
+
+        if len(columns) > 1:
+            entry = columns[0].text.strip().split("\n")[0]
+            entry_value = columns[2].text.strip().split("\n")[0]
+            #print(entry)
+            #print(len(entry))
+            #print(entry_value)
+            
+            if entry == 'Race:':
+                inmate.race = entry_value
+            elif entry == 'Sex:':
+                inmate.sex = entry_value
+            elif entry == 'Hair Color:':
+                inmate.hairColor = entry_value
+            elif entry == 'Eye':
+                inmate.eyeColor = entry_value
+            elif entry == 'Height:':
+                inmate.height = entry_value
+            elif entry == 'Weight:':
+                inmate.weight = entry_value
+            elif entry == 'Birth Date:':
+                split_DOB = entry_value.split("/")
+                inmate.DOB = Date(int(split_DOB[2]), int(split_DOB[0]), int(split_DOB[1]), True)
 
     """
     GENERAL FORMAT: create an inmate object, add all relevant information to it. Create record object(s), fill
@@ -154,7 +243,7 @@ def saveInmateProfile(soup, browser):
     """
 
     # saves profile to the database
-    writeToDB(inmate)
+    #writeToDB(inmate)
 
 
 
@@ -162,7 +251,7 @@ def saveInmateProfile(soup, browser):
 
     # click back button
     # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
-
+    browser.back()
     return name
 
 """
@@ -172,3 +261,5 @@ baseCrawler(last, first)
 ...
 
 """
+
+print(baseCrawler("anderson",""))
