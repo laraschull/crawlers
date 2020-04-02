@@ -1,6 +1,7 @@
 from selenium import webdriver
 from bs4 import NavigableString, BeautifulSoup
 from models.Name import Name
+from string import ascii_lowercase
 import time
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord
@@ -154,4 +155,9 @@ def xpath_soup(element):
 """
 TESTS:
 """
+# change this for a specific name search
 baseCrawler("a", "")
+
+# change this to crawl the entire database
+for s in ascii_lowercase:
+    baseCrawler(s, "")
