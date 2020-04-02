@@ -1,4 +1,5 @@
 def generate_inmate_id(name, dob=None):
+    # need a way to generate an id for people without a dob
     if dob is None:  # method overloading, no dob means name is actually whole inmate
         inmate = name
         name = inmate.name
@@ -9,7 +10,10 @@ def generate_inmate_id(name, dob=None):
     try:
         yob = dob.year
     except(AttributeError):
-        yob = dob["year"]
+        if dob is not None:
+            yob = dob["year"]
+        else:
+            yob = dob
     yob = str(yob)
     ret = last + "_" + first + "_" + yob
 
