@@ -3,11 +3,10 @@ from bs4 import NavigableString, BeautifulSoup
 from models.Name import Name
 import time
 from models.Inmate import Inmate
-from models.InmateRecord import InmateRecord, RecordStatus
+from models.InmateRecord import InmateRecord
 from models.Facility import Facility
 from utils.updater import *
 from models.Date import Date
-import itertools
 
 browser = webdriver.Chrome("chromedriver")
 
@@ -123,6 +122,9 @@ def saveInmateProfile(browser):
     return inmate.name.first + " " + inmate.name.last
 
 def nextButton(browser):
+    """
+    finds the next button and sees if it exists
+    """
     navigationButtonDiv = browser.find_element_by_xpath("/html/body/div[7]/div[2]/div[2]/div[2]/div[2]")
     spansSoup = BeautifulSoup(navigationButtonDiv.get_attribute('innerHTML'), 'html.parser')
     spansList = spansSoup.find_all("span")
