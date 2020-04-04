@@ -6,7 +6,6 @@ from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
 from datetime import datetime
-from utils import csv_utils
 import time
 import re
 

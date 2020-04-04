@@ -9,12 +9,9 @@ from models.Inmate import Inmate
 from models import InmateRecord
 from models import Facility
 from datetime import datetime
-from utils import csv_utils
 from time import time
 
 browser = webdriver.Chrome('./chromedriver')
-csv_utils.writeheader()
-
 baseUrl = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
 
 def baseCrawler():

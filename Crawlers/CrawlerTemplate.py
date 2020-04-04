@@ -1,82 +1,88 @@
 from selenium import webdriver
-from string import ascii_lowercase
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from models.Name import Name
 from models.Date import Date
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
-from datetime import datetime
-from utils import csv_utils
-import time
 import re
-from pymongo import MongoClient
-from utils.identifier import *
 from utils.updater import *
 
-browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe")
-csv_utils.writeheader()
+chrome_options = Options()
+# chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
+# browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
+browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
 
-baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
-client = MongoClient('localhost', 27017)
-db = client.inmate_database
+#baseUrl = "ADD BASE URL HERE AND UNCOMMENT THIS LINE"
 
-def baseCrawler():
+def baseCrawler(last, first):
     # opening up browser
     browser.set_page_load_timeout(20)
     browser.get(baseUrl)
-    
-    # get past info page
-    browser.find_element_by_name("submit2").click()
-    for s in ascii_lowercase:
 
-        print("Scraping inmate records whose last name start with {}".format(s.upper()))
-        
-        # searching for inmate last names that start with certain character
-        browser.find_element_by_name("vLastName").send_keys(s)
-        browser.set_page_load_timeout(10)
-        browser.find_element_by_name("NextButton2").click()
+    # searching for inmate last names that start with certain character
+    # lastNameBar = find in HTML
+    browser.find_element_by_name(lastNameBar).send_keys(last)
+    # firstNameBar = find in HTML
+    browser.find_element_by_name(firstNameBar).send_keys(first)
+    browser.set_page_load_timeout(10)
+    # searchButton = find in HTML
+    browser.find_element_by_name(searchButton).click()
 
-        # begin parsing html with beautiful soup
-        num_profiles = len(browser.find_elements_by_xpath("//input[@value='View Offender Info']"))
-        pages = browser.find_element_by_xpath("//span[@class='oq-nav-btwn']").text.split('of ')[-1]
-        
-        for v in range(0, int(pages)): 
-            for i in range(0, num_profiles):
+    # begin parsing html with beautiful soup
 
-                profile = browser.find_elements_by_xpath("//input[@value='View Offender Info']")[i]
-                browser.set_page_load_timeout(10)
-                profile.click()
-
-                soup = BeautifulSoup(browser.page_source, 'html.parser')
-                name = saveInmateProfile(soup, browser)
-                print("PAGE {}: Done saving record {}/{}: {}".format(v, i, num_profiles, name))
-            
-            # go to next page
+    while True:
+        # profileXPath = find in HTML (path to clickable link for each person)
+        profileList = browser.find_elements_by_xpath(profileXPath)
+        for i in range(len(profileList)):
+            profile = browser.find_elements_by_xpath(profileXPath)[i]
             browser.set_page_load_timeout(10)
-            browser.find_element_by_id('oq-nav-nxt').click()
-        
-        # return to home page for the next character
-        back_btn = browser.find_element_by_xpath("//span[text()='Start a New Search']")
-        back_btn.find_element_by_xpath('..').click()
+            profile.click()
+
+            soup = BeautifulSoup(browser.page_source, 'html.parser')
+            name = saveInmateProfile(soup, browser)
+            print("Done saving record with name ", name)
+
+        # go to next page, if necessary
+        browser.set_page_load_timeout(10)
+        # nextName = find in HTML
+        browser.find_element_by_id(nextName).click()
+
+        # implement way to break loop if on the last page (ex. "next" button attribute)
+        if True:
+            break
 
     browser.quit()
+
 
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    record.state = "GA"
+    # record.state = "XX"
     facility = Facility()
 
-    inmateID = soup.find('h5', text = re.compile('GDC ID:.*')).get_text().strip().split()[-1]
-    
-    name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
-    lastName, firstNames = name.split(',')
+    # idName = find in HTML
+    inmateID = soup.find(idName).get_text()  # find inmate ID, will go in active record
+
+    # find inmate name
+    # name = find in HTML
+    # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
+    # finds text that includes "NAME:, for example; regex"
+    lastName, firstNames = name.split(',')  # only if "last, first" order; otherwise vice versa
     firstNames = firstNames.split()
     firstName = firstNames[0]
     middleName = "" if len(firstNames[1:]) == 0 else " ".join(firstNames[1:])
     inmate.name = Name(firstName, middleName, lastName)
-    
+
+    # find way to parse and collect rest of info; will vary with different crawlers
+
+    """
+    GENERAL FORMAT: create an inmate object, add all relevant information to it. Create record object(s), fill
+    in as seen fitting. Make sure mark active records as such. Call Inmate.addRecord(record) to add the record to the 
+    inmate profile.
+
+    Georgia example:
 
     info = soup.findAll('p')
     caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
@@ -86,10 +92,8 @@ def saveInmateProfile(soup, browser):
             data = row.text.split('\n')
             data = map(str.strip, data)
             data = list(filter(None, data)) 
-
             # past convictions
             if any("SENTENCE LENGTH" in s for s in data):
-
                 for info in data:
                     try:
                         entry, value = info.split(': ')
@@ -114,7 +118,6 @@ def saveInmateProfile(soup, browser):
                         past_record.recordNumber = caseNumbers[recordCounter]
                         inmate.addRecord(past_record)
                         recordCounter += 1
-
             # information about current conviction
             else:
                 for trait in data:
@@ -138,7 +141,8 @@ def saveInmateProfile(soup, browser):
                         inmate.hairColor = value
                     elif entry == 'MOST RECENT INSTITUTION':
                         facility.name = value
-                        #record.addFacility(facility)
+                        facility.state = record.state
+                        record.addFacility(facility)
                     elif entry == 'MAX POSSIBLE RELEASE DATE':
                         record.maxReleaseDate = Date(value)
                         record.status = RecordStatus.ACTIVE
@@ -146,27 +150,21 @@ def saveInmateProfile(soup, browser):
             record.status = RecordStatus.ACTIVE
             record.inmateNumber = inmateID
             inmate.addRecord(record)
+    """
 
-    if(db.inmates.count_documents({"_id": generate_inmate_id(inmate)}) == 0):  # insert new inmate
-        print("new inmate")
-        db.inmates.insert_one(inmate.getDict())
-    else:  # update existing inmate
-        print("repeat inmate")
-        updateInmate(inmate)  # from utils.updater
-
-    for rec in inmate.records:
-        if (db.records.count_documents({"_id": rec.getGeneratedID()}) == 0):  # insert new record
-            print("new record")
-            db.records.insert_one(rec.getDict())
-        else:  # update existing record
-            print("repeat record")
-            updateRecord(record)  # from utils.updater
-
-
+    # saves profile to the database
+    writeToDB(inmate)
 
     browser.set_page_load_timeout(10)
-    browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
+
+    # click back button
+    # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
 
-baseCrawler()
+
+"""
+TESTS:
+baseCrawler(last, first)
+...
+"""

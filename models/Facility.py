@@ -2,4 +2,15 @@ class Facility:
 
     def __init__(self):
         self.name = None
-        self.generatedID = 1  # change once database is queried
+        self.state = None
+        self.generatedID = ""
+
+    def getGeneratedID(self):
+        self.generatedID = self.state + "_" + self.name.replace(" ", "_")
+        return self.generatedID
+
+    def getDict(self):
+        return {"_id": self.getGeneratedID(),
+                "name": self.name,
+                "state": self.state
+                }
