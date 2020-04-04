@@ -36,8 +36,8 @@ def baseCrawler(last, first):
     profileList = browser.find_elements_by_xpath(profileXPath)
     while True:
         for i in range(len(profileList)):
-            profileList = browser.find_elements_by_xpath(profileXPath)
-            profile = profileList[i]
+            profile = browser.find_elements_by_xpath(profileXPath)[i]
+            browser.set_page_load_timeout(10)
             profile.click()
 
             soup = BeautifulSoup(browser.page_source, 'html.parser')
