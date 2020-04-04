@@ -1,121 +1,150 @@
 from selenium import webdriver
-from string import ascii_lowercase
 from bs4 import BeautifulSoup
+from models.Name import Name
+from models.Date import Date
 from models.Inmate import Inmate
-from models.InmateRecord import InmateRecord
+from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
-from datetime import datetime
-from utils import csv_utils
-from time import time
 import re
+# from utils.updater import *
 
-browser = webdriver.Chrome('./chromedriver')
-csv_utils.writeheader()
+browser = webdriver.Chrome()  # Jim, put extension in
 
 baseUrl = "http://www.doc.state.al.us/InmateSearch"
+# baseUrl =
 
-def baseCrawler(first_name, last_name):
+
+def baseCrawler(last_name, first_name):
     # opening up browser
-    # maybe look into a more stripped down, efficient driver?
-    browser.set_page_load_timeout(10)
+    browser.set_page_load_timeout(20)
     browser.get(baseUrl)
-    # time.sleep(5)
 
-    # searching for inmate last names with A
-    browser.find_element_by_name("ctl00$MainContent$txtLName").send_keys(first_name)
-    browser.find_element_by_name("ctl00$MainContent$txtFName").send_keys(last_name)
+    # searching for inmate last names that start with certain character
+    browser.find_element_by_name("ctl00$MainContent$txtFName").send_keys(first_name)
+    browser.find_element_by_name("ctl00$MainContent$txtLName").send_keys(last_name)
+
+    # click search button
     browser.find_element_by_name("ctl00$MainContent$btnSearch").click()
-    source = browser.page_source
 
     # begin parsing html with beautiful soup
-    soup = BeautifulSoup(source, 'html.parser')
-    listOfTables = soup.findAll("table")
+    # profileXPath = find in HTML (path to clickable link for each person)
 
-    # need to start at 1 because first table is headers
-    inmateTable = listOfTables[0]
+    # if next page exists (by checking to see if the next page arrow exists, see how many pages there are
+    try:
+        browser.find_element_by_id("MainContent_gvInmateResults_btnNext")
+        numPages = int(browser.find_element_by_id("MainContent_gvInmateResults_lblPages").text)
+    except NameError:
+        # if next page button doesn't exist, there is only one page of results
+        numPages = 1
 
-    # where data is
-    body = inmateTable.find("tbody")
 
-    # find all rows with inmates
-    listOfInmates = body.findAll("tr")
+    profileList = []
+    tableLength = int(browser.find_element_by_id("MainContent_lblMessage").text.split()[3])
+    for i in range(tableLength):
+        profileList.append(browser.find_elements_by_xpath("//*[@id='MainContent_gvInmateResults_lnkInmateName_" + str(i) + "']")[0])
 
-    # skip first dummy row
+    for j in range(numPages):
+        # for i in range(len(profileList)):
+        for i in range(1):
+            profile = profileList[i]
+            browser.set_page_load_timeout(10)
+            profile.click()
+            # SOMEHOW GO BACK TO ORIGINAL SEARCH PAGE
 
-    for x in range(1, len(listOfInmates)):
-        # time.sleep(5)
-        currentRow = listOfInmates[x]
-        inmateRowToList(currentRow, browser)
+            soup = BeautifulSoup(browser.page_source, 'html.parser')
+            name = saveInmateProfile(soup, browser)
+            print("Done saving record of", name)
+            # browser.quit()
+
+        """ Below is currently throwing error, because no way to get to other profiles currently """
+        if numPages != 1:
+            if int(browser.find_element_by_id("MainContent_gvInmateResults_lblCurrent").text) != numPages:
+                # go to next page, if necessary
+                browser.set_page_load_timeout(10)
+                # next button = find in HTML
+                browser.find_element_by_id("MainContent_gvInmateResults_btnNext").click()
 
     browser.quit()
 
-def inmateRowToList(htmlRow, browser):
-    #currently still html
-    cells = htmlRow.findAll("td")
-    parsedData = []
 
-
-    # splits html row into individual elements in a list
-    for cell in cells:
-        parsedData += cell.contents
-
+def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    facility = Facility()
+    record.state = "Alabama"
+    facility = Facility()   # current facility info
 
-    # get inmate information
-    url = "http://www.doc.state.al.us/InmateSearch" + cells[0].find('a')['href']
+    # inmate id specific to alabama
+    inmateID = soup.find(id="MainContent_DetailsView2_Label2").get_text()
+
+    # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
+    # finds text that includes "NAME:, for example; regex"
+    name = soup.find(id="MainContent_DetailsView2_Label1").get_text()
+    lastName, firstNames = name.split(',')  # only if "last, first" order; otherwise vice versa
+    firstNames = firstNames.split()
+    firstName = firstNames[0]
+    middleName = "" if len(firstNames[1:]) == 0 else " ".join(firstNames[1:])
+    inmate.name = Name(firstName, middleName, lastName)
+
+    # get info off profile pages
+    info = soup.findAll('table')
+
+    # facility names
+    facility.name = info[0].find(id="MainContent_DetailsView2_Label3").get_text()
+    facility.state = record.state
+    # record.facilityID = facility.generatedID
+
+    # caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
+    # recordCounter = 0
+
+    for i in range(1, len(info)):
+        count = 0
+        for row in info[i]:
+            # skip first dummy row
+            if count != 1:
+                count += 1
+            else:
+                currentRecord = False
+                for trait in row:
+                    if i == 1:
+                        try:
+                            lines = trait.text.split("\n")
+                            traits = lines[1].split(":")
+                        except AttributeError:
+                            continue
+                        if traits[0] == "Race":
+                            inmate.race = traits[1]
+                        elif traits[0] == "Sex":
+                            inmate.sex = traits[1]
+                        elif traits[0] == "Hair Color":
+                            inmate.hairColor = traits[1]
+                        elif traits[0] == "Eye Color":
+                            inmate.eyeColor = traits[1]
+                        elif traits[0] == "Height":
+                            inmate.height = traits[1]
+                        elif traits[0] == "Birth Year":
+                            inmate.DOB = Date(traits[1], None, None, True)
+                        elif traits[0] == "Sex":
+                            inmate.sex = traits[1]
+                    elif i == 2:
+                        # print('NEW ROW')
+                        # print(trait)
+                        try:
+                            lines = trait.text.split("\n")
+                            traits = lines[1].split(" ")
+                            print(traits)
+                        except AttributeError:
+                            continue
+
+
+    # save profile to the database
+    # writeToDB(inmate)
+
     browser.set_page_load_timeout(10)
-    browser.get(url)
 
-    source = browser.page_source
-    soup = BeautifulSoup(source, 'html.parser')
-    listOfTables = soup.find("tbody").find('tbody')
+    # click back button
+    # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
-    # loop thru table of inmate's information
-    for rows in listOfTables.find_all_next("tr"):
-        allTd = rows.findAll('td')
+    return name
 
-        try:
-            entry = allTd[0].text.strip()
-            value = allTd[1].text.strip()
-        except IndexError:
-            print("Not a valid table entry field")
-            continue
-
-        if entry == "Inmate Number:":
-            inmate.id = value
-        elif entry == "Inmate Name:":
-            inmate.firstNames = value.split(',')[1]
-            inmate.lastName = value.split(',')[0]
-        elif entry == "Birth Year":
-            dob = value.split("/")
-            inmate.DOB = datetime(int(dob[2]), int(dob[0]), int(dob[1])) # year, month, day
-            today = datetime.today()
-            # StackOverflow cite
-            # https://stackoverflow.com/a/9754466
-            inmate.age = today.year - inmate.DOB.year - ((today.month, today.day) < (inmate.DOB.month, inmate.DOB.day))
-        elif entry == "Sex:":
-            inmate.sex = value
-        elif entry == "Race":
-            inmate.race = value
-        elif entry == "Current Location:":
-            facility.name = value
-        elif entry == "Date of Sentence:":
-            dos = value.split("/")
-            if len(dos) > 1:
-                record.sentenceDate = datetime(int(dos[2]), int(dos[0]), int(dos[1]))
-        elif entry == "Estimated Release Date:":
-            erd = value.split("/")
-            if len(erd) > 1:
-                record.estReleaseDate = datetime(int(erd[2]), int(erd[0]), int(erd[1]))
-        elif entry == "Controlling Offense*:":
-            record.offense = value
-        elif entry == "Headshot":
-            inmate.headshot = value
-
-    csv_utils.write(inmate, record, facility)
-    # time.sleep(5)
-
-baseCrawler("Amos", "")
-
+# TESTS:
+baseCrawler("Adams", "")
