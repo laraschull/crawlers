@@ -1,4 +1,6 @@
 from utils.identifier import *
+from models.Name import Name
+from models.Date import Date
 
 class Inmate:
 
@@ -14,6 +16,19 @@ class Inmate:
         self.height = None 
         self.weight = None
         self.hairColor = None
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            print("classes unequal")
+            return False
+        if not self.name == other.name:
+            print("names unequal")
+            return False
+        if not self.DOB == other.DOB:
+            print("DOBs unequal")
+            return False
+        # TODO add more tests
+        return True
 
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
@@ -39,3 +54,8 @@ class Inmate:
                 "weight": self.weight,
                 "hairColor": self.hairColor
         }
+
+    def setByDict(self, param):
+        self.name = Name().setByDict(param["name"])
+        self.DOB = Date().setByDict(param["DOB"])
+        # TODO set other fields

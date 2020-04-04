@@ -39,6 +39,12 @@ class Date:
     def getDict(self):
         return {"day": self.day, "month": self.month, "year": self.year, "estimated": self.estimated}
 
+    def setByDict(self, param):
+        self.day = int(param["day"])
+        self.month = int(param["month"])
+        self.year = int(param["year"])
+        self.estimated = bool(param["estimated"])
+
     def addTime(self, y, m, d):
         try:
             datetimeObj = datetime(self.year, self.month, self.day) + timedelta(days=d, weeks=4*m + 52*y)

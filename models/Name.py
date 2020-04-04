@@ -16,3 +16,8 @@ class Name:
 
     def getDict(self):
         return {"first": self.first, "middle": self.middle, "last": self.last}
+
+    def setByDict(self, param):
+        self.first = param["first"]
+        self.middle = param["middle"]
+        self.last = param["last"]

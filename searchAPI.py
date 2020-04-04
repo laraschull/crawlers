@@ -32,6 +32,18 @@ def search():
     else:
         return "Error: No last name field provided. Please specify a last name."
 
+    # instate only records is True by default
+    if 'instate' in request.args:
+        instate = bool(request.args['instate'])
+    else:
+        instate = True
+
+    # active only records is True by default
+    if 'active' in request.args:
+        active = bool(request.args['active'])
+    else:
+        active = True
+
     if state == "GA":
         print("entering Georgia search")
         ga_search.baseCrawler(last, first)
@@ -39,6 +51,43 @@ def search():
     else:
         return "State Not Found"
 
-    results = db.inmates.find( { "name.first": first, "name.last": last } )
+    results = db.inmates.find({"name.first": first, "name.last": last})
+    results = dumps(results)
 
-    return dumps(results)
+    # here, we find the matching record data for each inmate
+    for inmate in results:
+        new_records = []
+        for record in inmate["records"]:
+            new_records += db.records.find({"_id": record})
+        inmate["records"] = new_records
+
+    if instate and active:  # returns only inmates with active and in state records. DEFAULT CASE
+        inStateActiveOnlyResults = []
+        for inmate in results:
+            for record in inmate["records"]:
+                if int(record["status"]) == 1 and record["state"] == state:
+                    inStateActiveOnlyResults += [inmate]
+                    break
+        results = inStateActiveOnlyResults
+
+    elif instate:  # returns only inmates with instate records
+        inStateOnlyResults = []
+        for inmate in results:
+            for record in inmate["records"]:
+                if record["state"] == state:
+                    inStateOnlyResults += [inmate]
+                    break
+        results = inStateOnlyResults
+
+    elif active:  # returns only inmates with active records
+        activeOnlyResults = []
+        for inmate in results:
+            for record in inmate["records"]:
+                if int(record["status"]) == 1:
+                    activeOnlyResults += [inmate]
+                    break
+        results = activeOnlyResults
+
+    # else return all records
+
+    return results

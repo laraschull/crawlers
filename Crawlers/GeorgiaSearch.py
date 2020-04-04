@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from models.Name import Name
@@ -33,33 +34,52 @@ def baseCrawler(last, first):
     searchButton = "NextButton2"
     browser.find_element_by_name(searchButton).click()
 
-    # begin parsing html with beautiful soup
-    while True:
-        profileXPath = "//input[@value='View Offender Info']"
-        profileList = browser.find_elements_by_xpath(profileXPath)
-        for i in range(len(profileList)):
-            profile = browser.find_elements_by_xpath(profileXPath)[i]
-            browser.set_page_load_timeout(10)
-            profile.click()
+    try:
+        browser.find_elements_by_xpath("//*[contains(text(), 'Sorry, we couldn')]")
+        nonePage = True
+    except(NoSuchElementException):
+        nonePage = False
 
-            soup = BeautifulSoup(browser.page_source, 'html.parser')
-            name = saveInmateProfile(soup, browser)
-            print("Done saving record with name ", name)
 
-        # implement way to break loop if on the last page (ex. "next" button attribute)
-        pageCounterClass = "//span[@class='oq-nav-btwn']"
-        pageCounter = browser.find_element_by_xpath(pageCounterClass).text
-        pageTuple = pageCounter.split("of")
-        pageTuple = [int(x.strip("Page ").strip()) for x in pageTuple]
-        print(pageTuple)
-        lastPage = pageTuple[0] == pageTuple[1]
-        if lastPage:
-            # no next page, break
-            break
-        else:
-            # go to next page
-            nextName = "oq-nav-nxt"
-            browser.find_element_by_id(nextName).click()
+    profileXPath = "//input[@value='View Offender Info']"
+
+    if(nonePage):
+        print("nonePage")
+        return
+
+    elif(single):
+        print("singlePage")
+        soup = BeautifulSoup(browser.page_source, 'html.parser')
+        name = saveInmateProfile(soup, browser)
+        print("Done saving record with name ", name)
+
+    else:  # if multiple responses, begin parsing html with beautiful soup
+        while True:
+            profileXPath = "//input[@value='View Offender Info']"
+            profileList = browser.find_elements_by_xpath(profileXPath)
+            for i in range(len(profileList)):
+                profile = browser.find_elements_by_xpath(profileXPath)[i]
+                browser.set_page_load_timeout(10)
+                profile.click()
+
+                soup = BeautifulSoup(browser.page_source, 'html.parser')
+                name = saveInmateProfile(soup, browser)
+                print("Done saving record with name ", name)
+
+            # implement way to break loop if on the last page (ex. "next" button attribute)
+            pageCounterClass = "//span[@class='oq-nav-btwn']"
+            pageCounter = browser.find_element_by_xpath(pageCounterClass).text
+            pageTuple = pageCounter.split("of")
+            pageTuple = [int(x.strip("Page ").strip()) for x in pageTuple]
+            print(pageTuple)
+            lastPage = pageTuple[0] == pageTuple[1]
+            if lastPage:
+                # no next page, break
+                break
+            else:
+                # go to next page
+                nextName = "oq-nav-nxt"
+                browser.find_element_by_id(nextName).click()
 
     browser.quit()
 
@@ -166,3 +186,5 @@ def saveInmateProfile(soup, browser):
     browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
+
+baseCrawler("fagan", "chadwick")

@@ -4,12 +4,17 @@ from pymongo import MongoClient
 client = MongoClient('localhost', 27017)
 db = client.inmate_database
 
+
 def updateInmate(inmate):
-    pass
+    # TODO, make updater intelligently reconcile the data, rather than simply overwrite it
+    db.inmates.delete_one({"_id": inmate.getGeneratedID()})
+    db.inmates.insert_one(inmate.getDict())
 
 
 def updateRecord(record):
-    pass
+    # TODO, make updater intelligently reconcile the data, rather than simply overwrite it
+    db.inmates.delete_one({"_id": record.getGeneratedID()})
+    db.inmates.insert_one(record.getDict())
 
 
 def writeToDB(inmate):
