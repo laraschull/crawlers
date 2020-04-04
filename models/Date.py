@@ -11,6 +11,12 @@ class Date:
 
         if year == "N/A" or year == "LIFE" or year == "NOT":
             return
+        elif estimated is True:
+            age = year
+            now = datetime.now()
+            self.year = now.year - int(age)
+            self.month = now.month
+            self.day = now.day
         elif isinstance(year, str) and "/" in year:
             try:
                 [m, d, y] = year.split("/")

@@ -29,7 +29,7 @@ class Inmate:
 
         return {"_id": self.getGeneratedID(),
                 "name": self.name.getDict(),
-                "DOB": self.DOB if self.DOB is not None else None,
+                "DOB": self.DOB.getDict() if self.DOB is not None else None,
                 "records": [x.getGeneratedID() for x in self.records],  # if we only want the record ids to be saved!
                 "sex": self.sex,
                 "race": self.race,
