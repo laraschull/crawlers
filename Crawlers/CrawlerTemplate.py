@@ -14,28 +14,26 @@ chrome_options = Options()
 # browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
 browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
 
-baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
+#baseUrl = "ADD BASE URL HERE AND UNCOMMENT THIS LINE"
 
 def baseCrawler(last, first):
     # opening up browser
     browser.set_page_load_timeout(20)
     browser.get(baseUrl)
 
-    # agree to terms and conditions
-    agreeButton = "submit2"
-    browser.find_element_by_name(agreeButton).click()
-
     # searching for inmate last names that start with certain character
-    lastNameBar = "vLastName"
+    # lastNameBar = find in HTML
     browser.find_element_by_name(lastNameBar).send_keys(last)
-    firstNameBar = "vFirstName"
+    # firstNameBar = find in HTML
     browser.find_element_by_name(firstNameBar).send_keys(first)
-    searchButton = "NextButton2"
+    browser.set_page_load_timeout(10)
+    # searchButton = find in HTML
     browser.find_element_by_name(searchButton).click()
 
     # begin parsing html with beautiful soup
+
     while True:
-        profileXPath = "//input[@value='View Offender Info']"
+        # profileXPath = find in HTML (path to clickable link for each person)
         profileList = browser.find_elements_by_xpath(profileXPath)
         for i in range(len(profileList)):
             profile = browser.find_elements_by_xpath(profileXPath)[i]
@@ -46,20 +44,14 @@ def baseCrawler(last, first):
             name = saveInmateProfile(soup, browser)
             print("Done saving record with name ", name)
 
+        # go to next page, if necessary
+        browser.set_page_load_timeout(10)
+        # nextName = find in HTML
+        browser.find_element_by_id(nextName).click()
+
         # implement way to break loop if on the last page (ex. "next" button attribute)
-        pageCounterClass = "//span[@class='oq-nav-btwn']"
-        pageCounter = browser.find_element_by_xpath(pageCounterClass).text
-        pageTuple = pageCounter.split("of")
-        pageTuple = [int(x.strip("Page ").strip()) for x in pageTuple]
-        print(pageTuple)
-        lastPage = pageTuple[0] == pageTuple[1]
-        if lastPage:
-            # no next page, break
+        if True:
             break
-        else:
-            # go to next page
-            nextName = "oq-nav-nxt"
-            browser.find_element_by_id(nextName).click()
 
     browser.quit()
 
@@ -67,24 +59,31 @@ def baseCrawler(last, first):
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    record.state = "GA"
+    # record.state = "XX"
     facility = Facility()
 
-    inmateID = soup.find('h5', text = re.compile('GDC ID:.*')).get_text().strip().split()[-1]  # find inmate ID, will go in active record
+    # idName = find in HTML
+    inmateID = soup.find(idName).get_text()  # find inmate ID, will go in active record
 
     # find inmate name
-    name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
-    # finds text that includes "NAME:", for example; regex
+    # name = find in HTML
+    # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
+    # finds text that includes "NAME:, for example; regex"
     lastName, firstNames = name.split(',')  # only if "last, first" order; otherwise vice versa
     firstNames = firstNames.split()
     firstName = firstNames[0]
     middleName = "" if len(firstNames[1:]) == 0 else " ".join(firstNames[1:])
     inmate.name = Name(firstName, middleName, lastName)
-    
 
     # find way to parse and collect rest of info; will vary with different crawlers
 
-    
+    """
+    GENERAL FORMAT: create an inmate object, add all relevant information to it. Create record object(s), fill
+    in as seen fitting. Make sure mark active records as such. Call Inmate.addRecord(record) to add the record to the 
+    inmate profile.
+
+    Georgia example:
+
     info = soup.findAll('p')
     caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
     recordCounter = 0
@@ -93,10 +92,8 @@ def saveInmateProfile(soup, browser):
             data = row.text.split('\n')
             data = map(str.strip, data)
             data = list(filter(None, data)) 
-
             # past convictions
             if any("SENTENCE LENGTH" in s for s in data):
-
                 for info in data:
                     try:
                         entry, value = info.split(': ')
@@ -121,7 +118,6 @@ def saveInmateProfile(soup, browser):
                         past_record.recordNumber = caseNumbers[recordCounter]
                         inmate.addRecord(past_record)
                         recordCounter += 1
-
             # information about current conviction
             else:
                 for trait in data:
@@ -146,7 +142,6 @@ def saveInmateProfile(soup, browser):
                     elif entry == 'MOST RECENT INSTITUTION':
                         facility.name = value
                         facility.state = record.state
-                        facility.getGeneratedID()
                         record.addFacility(facility)
                     elif entry == 'MAX POSSIBLE RELEASE DATE':
                         record.maxReleaseDate = Date(value)
@@ -155,14 +150,21 @@ def saveInmateProfile(soup, browser):
             record.status = RecordStatus.ACTIVE
             record.inmateNumber = inmateID
             inmate.addRecord(record)
-
+    """
 
     # saves profile to the database
     writeToDB(inmate)
 
-
+    browser.set_page_load_timeout(10)
 
     # click back button
-    browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
+    # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
+
+
+"""
+TESTS:
+baseCrawler(last, first)
+...
+"""
