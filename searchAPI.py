@@ -11,7 +11,7 @@ db = client.inmate_database
 
 @app.route('/')
 def hello_world():
-    return 'god bless u an god bless america'
+    return 'hello world'
 
 
 @app.route('/api/search/')
