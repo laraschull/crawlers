@@ -47,8 +47,8 @@ make sure to set the state parameter and the first and last name that you are in
 1. First, create a new branch from master for you to work on
 2. Then, duplicate the CrawlerTemplate.py file, and rename it StateSearch.py, where State is the name of the state you are working on
 3. Then, go through the template file, configuring the commented-out variables to match the actual names of various html features in the database
-  1. This part requires the most work, as each website is different.
-  2. the GeorgiaSearch.py file is the most complete example that we have at the moment. Use this as a model
+  * This part requires the most work, as each website is different.
+  * the GeorgiaSearch.py file is the most complete example that we have at the moment. Use this as a model
 4. Once you have configured all the fields to extract the inmate, record, and facility information, then you can write test cases in the testing.py file. (This has not yet merged to master, as I am still debugging the test process, so don't worry about this step at the moment)
 5. Submit a pull request to merge the new searcher, and any changes that you needed to make to the models or utils files, back into master.
 6. Notify the team of changes madel to models or util.
