@@ -78,6 +78,7 @@ def saveInmateProfile(browser):
                 inmate.name = Name(firstName, middleName, lastName)
             elif "Age" in txt:
                 inmate.age = txt.split(" ")[-1]
+                inmate.DOB = Date(inmate.age, None, None, True)
             elif "Gender" in txt:
                 inmate.sex = txt.split(" ")[-1]
             elif "Ethnicity" in txt:
@@ -101,7 +102,7 @@ def saveInmateProfile(browser):
 
             if "DOC Number" in txt:
                 # inmate's id given by Colorado Department of Corrections
-                continue
+                record.recordNumber = txt.split(" ")[-1]
             elif "Est. Parole Eligibility Date" in txt:
                 dateSplit = txt.split(" ")[-1].split("/")
                 if len(dateSplit) > 1:
@@ -159,5 +160,5 @@ TESTS:
 baseCrawler("a", "")
 
 # change this to crawl the entire database
-for s in ascii_lowercase:
-    baseCrawler(s, "")
+# for s in ascii_lowercase:
+#     baseCrawler(s, "")
