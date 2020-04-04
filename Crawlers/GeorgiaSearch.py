@@ -12,9 +12,8 @@ from utils.updater import *
 
 def baseCrawler(last, first):
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
+    # chrome_options.add_argument("--headless")
     browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # Jim, put extension in
-    options = webdriver.ChromeOptions()
     baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
 
     # opening up browser
