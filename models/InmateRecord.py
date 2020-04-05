@@ -11,7 +11,7 @@ class InmateRecord:
     status = RecordStatus
     def __init__(self):
         self.generatedID = ""
-        self.inmateNumber = None  # db key!
+        self.inmateNumber = None
         self.recordNumber = None
         self.admissionDate = None
         self.sentenceDate = None
@@ -20,7 +20,6 @@ class InmateRecord:
         self.paroleEligibilityDate = None
         self.nextParoleHearingDate = None
         self.facility = None
-        self.facilityID = None  # db key!
         self.state = None
         self.bondAmt = None
         self.status = RecordStatus.UNDEFINED
@@ -60,7 +59,7 @@ class InmateRecord:
             "estReleaseDate": self.estReleaseDate.getDict() if self.estReleaseDate is not None else None,
             "paroleEligibilityDate": self.paroleEligibilityDate,
             "nextParoleHearingDate": self.nextParoleHearingDate,
-            "facilityID": self.facilityID,  # db key!
+            "facilityID": self.facility.getGeneratedID(),  # db key!
             "state": self.state,
             "bondAmt": self.bondAmt,
             "status": self.status.value,
@@ -68,5 +67,4 @@ class InmateRecord:
         }
 
     def addFacility(self, facility):
-        self.facilityID = facility.getGeneratedID()
         self.facility = facility
