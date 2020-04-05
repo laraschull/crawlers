@@ -5,16 +5,34 @@ from models.Date import Date
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
-import re
-# from utils.updater import *
+from utils.updater import *
+"""
+Alabama Crawler currently:
 
-browser = webdriver.Chrome()  # Jim, put extension in
+has implemented:
+-entering given first/last name into alabama website and getting a list of search results
+-saves xpath of all profiles from search results as a list
+-goes into list and goes to first profile
+-correctly gets current information (name/age/sex/hair color/eye color/height/race/current facility name)
 
+needs to implement:
+- save current arrest details (current site is pretty unfriendly for parsing info, e.g. some attributes
+are combined with each other in html like SUF and Admit date)
+- saving past records (some prisoners include past records in profile)
+- a way to access original list of search results (once a profile is accessed
+the original results list cannot be accessed again
+
+possible solution: 
+-start the search again after every profile access
+-open a tab for the number of results of the search results list url and go into different profiles in each tab
+
+"""
+browser = webdriver.Chrome()
 baseUrl = "http://www.doc.state.al.us/InmateSearch"
-# baseUrl =
 
 
 def baseCrawler(last_name, first_name):
+
     # opening up browser
     browser.set_page_load_timeout(20)
     browser.get(baseUrl)
@@ -25,9 +43,6 @@ def baseCrawler(last_name, first_name):
 
     # click search button
     browser.find_element_by_name("ctl00$MainContent$btnSearch").click()
-
-    # begin parsing html with beautiful soup
-    # profileXPath = find in HTML (path to clickable link for each person)
 
     # if next page exists (by checking to see if the next page arrow exists, see how many pages there are
     try:
@@ -40,16 +55,17 @@ def baseCrawler(last_name, first_name):
 
     profileList = []
     tableLength = int(browser.find_element_by_id("MainContent_lblMessage").text.split()[3])
+
+    # list of links to get to different profiles
     for i in range(tableLength):
         profileList.append(browser.find_elements_by_xpath("//*[@id='MainContent_gvInmateResults_lnkInmateName_" + str(i) + "']")[0])
 
+
     for j in range(numPages):
-        # for i in range(len(profileList)):
-        for i in range(1):
+        for i in range(len(profileList)):
             profile = profileList[i]
             browser.set_page_load_timeout(10)
             profile.click()
-            # SOMEHOW GO BACK TO ORIGINAL SEARCH PAGE
 
             soup = BeautifulSoup(browser.page_source, 'html.parser')
             name = saveInmateProfile(soup, browser)
@@ -76,13 +92,14 @@ def saveInmateProfile(soup, browser):
     # inmate id specific to alabama
     inmateID = soup.find(id="MainContent_DetailsView2_Label2").get_text()
 
-    # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
-    # finds text that includes "NAME:, for example; regex"
+    # find name element
     name = soup.find(id="MainContent_DetailsView2_Label1").get_text()
-    lastName, firstNames = name.split(',')  # only if "last, first" order; otherwise vice versa
+    lastName, firstNames = name.split(',')
     firstNames = firstNames.split()
     firstName = firstNames[0]
     middleName = "" if len(firstNames[1:]) == 0 else " ".join(firstNames[1:])
+
+    # add name to inmate object
     inmate.name = Name(firstName, middleName, lastName)
 
     # get info off profile pages
@@ -93,7 +110,6 @@ def saveInmateProfile(soup, browser):
     facility.state = record.state
     # record.facilityID = facility.generatedID
 
-    # caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
     # recordCounter = 0
 
     for i in range(1, len(info)):
@@ -137,14 +153,14 @@ def saveInmateProfile(soup, browser):
 
 
     # save profile to the database
-    # writeToDB(inmate)
+    writeToDB(inmate)
 
     browser.set_page_load_timeout(10)
 
-    # click back button
+    # need way to get back to original search list results
     # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
 
 # TESTS:
-baseCrawler("Adams", "")
+# baseCrawler("Adams", "")
