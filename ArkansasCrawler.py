@@ -48,32 +48,34 @@ def baseCrawler(last, first):
     inmates = (inmateTable.findAll("tr"))[9].findAll("tr")[5:5+tableLength]
     #print(inmates)
     
-    profileList = []
-    for i in range(len(inmates)):
-        profileList.append( browser.find_elements_by_xpath(
-            "//*[@id='appContent']/div/center/table/tbody/tr/td/div/center/table/tbody/tr[10]/td/div/table/tbody/tr[3]/td/table/tbody/tr[" + str(i+2) + "]/td[3]/a"))
-    
-    
+    #profileXPath = 
+    #profileList = []
+    for j in range(1,len(inmates)):
+        profileXPath = browser.find_elements_by_xpath(
+            "//*[@id='appContent']/div/center/table/tbody/tr/td/div/center/table/tbody/tr[10]/td/div/table/tbody/tr[3]/td/table/tbody/tr[" + str(j+2) + "]/td[3]/a")
+    #//*[@id="appContent"]/div/center/table/tbody/tr/td/div/center/table/tbody/tr[10]/td/div/table/tbody/tr[3]/td/table/tbody/tr[2]/td[3]/a
+    #//*[@id="appContent"]/div/center/table/tbody/tr/td/div/center/table/tbody/tr[10]/td/div/table/tbody/tr[3]/td/table/tbody/tr[3]/td[3]/a
 #    for j in range(numPages):
+        print(profileXPath)
 
     
     #print(profileList)
 
     
     
-    for i in range(len(profileList)):
-        
-        profile = profileList[i][0]
-        #print(profile.get_attribute('innerHTML'))
-        browser.set_page_load_timeout(10)
-        profile.click()
+        for i in range(len(inmates)):
+            
+            profile = profileXPath[0]
+            #print(profile.get_attribute('innerHTML'))
+            browser.set_page_load_timeout(10)
+            profile.click()
 
-        soup = BeautifulSoup(browser.page_source, 'html.parser')
-        name = saveInmateProfile(soup, browser)
-        print(name)
-        print("Done saving record with name")
-        #driver.navigate().back()
-    
+            soup = BeautifulSoup(browser.page_source, 'html.parser')
+            name = saveInmateProfile(soup, browser)
+            print(name)
+            print("Done saving record with name")
+            #driver.navigate().back()
+        
 
     browser.quit()
     
