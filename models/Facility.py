@@ -13,4 +13,10 @@ class Facility:
     def getDict(self):
         return {"_id": self.getGeneratedID(),
                 "name": self.name,
-                "state": self.state}
+                "state": self.state
+                }
+
+    def getGeneratedID(self):
+        if self.generatedID is not None:
+            self.generatedID = self.name + self.state
+        return self.generatedID
