@@ -1,10 +1,12 @@
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import NavigableString, BeautifulSoup
 from models.Name import Name
 from string import ascii_lowercase
+from datetime import datetime
 import time
 from models.Inmate import Inmate
-from models.InmateRecord import InmateRecord
+from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
 from utils.updater import *
 from models.Date import Date
@@ -27,28 +29,22 @@ def baseCrawler(last, first):
 
     browser.implicitly_wait(5)
 
-    nextList = True
+    #get list of people
+    profileList = browser.find_elements_by_xpath("/html/body/div[3]/section/div/section/div[2]/form/div/table[2]"
+                                                 "/tbody/tr")
 
+    for i in range(len(profileList)):
+        time.sleep(5)
 
-    while nextList:
-        #get list of people
-        profileList = browser.find_elements_by_class_name("sticky-enabled tableheader-processed sticky-table")
+        elem = browser.find_element_by_xpath("/html/body/div[3]/section/div/section/div[2]/form/div/table[2]/tbody/"
+                                      "tr[" + str(i+1) + "]").find_element_by_tag_name("a")
+        actions = ActionChains(browser)
+        actions.move_to_element(elem).click().perform()
+        browser.implicitly_wait(3)
 
-        for i in range(len(profileList)):
-            print(profileList.get_attribute('innerHTML'))
-            profile = profileList[i]
-            browser.implicitly_wait(3)
-            profile.click()
-            browser.implicitly_wait(3)
+        name = saveInmateProfile(browser)
+        print("Done saving record with name ", name)
 
-            name = saveInmateProfile(browser)
-            print("Done saving record with name ", name)
-
-        nextList, button = nextButton(browser)
-
-        if nextList is True:
-            browser.find_element_by_xpath("/html/body/div[7]/div[2]/div[2]/div[2]/div[2]" + xpath_soup(button)).click()
-            time.sleep(2)
 
 
     browser.quit()
@@ -59,83 +55,96 @@ def saveInmateProfile(browser):
     facility = Facility()
 
     # find inmate ID, will go in active record
-    time.sleep(2)
+    time.sleep(10)
+    try:
+        element = browser.find_element_by_id("offender-information").find_elements_by_tag_name("tbody")
+    except:
+        return
 
-    element = browser.find_elements_by_class_name("section_data")
-
-    backgroundPersonInfo = BeautifulSoup(element[1].get_attribute('innerHTML'), 'html.parser').find("tbody").find("tbody")
+    backgroundPersonInfo = BeautifulSoup(element[0].get_attribute('innerHTML'), 'html.parser')
     personInfoCells = backgroundPersonInfo.find_all("tr")
 
     for ind in range(len(personInfoCells)):
         cell = personInfoCells[ind]
         if not isinstance(cell, NavigableString):
-            txt = " ".join(cell.text.strip().split())
-
+            txt = cell.find('td').text.strip()
+            value = cell.find('td').findNext('td').text.strip()
             if "Name" in txt:
-                fullName = txt.replace(",", "").split(" ")
-                lastName = fullName[1]
-                firstName = fullName[2]
-                middleName = fullName[-1] if len(fullName) == 4 else None
+                fullName = value.split(" ")
+                if len(fullName) == 3:
+                    lastName = fullName[-1]
+                    firstName = fullName[0]
+                    middleName = fullName[1]
+                else:
+                    lastName = fullName[-1]
+                    firstName = fullName[0]
+                    middleName = ""
                 inmate.name = Name(firstName, middleName, lastName)
-            elif "Age" in txt:
-                inmate.age = txt.split(" ")[-1]
-                inmate.DOB = Date(inmate.age, None, None, True)
-            elif "Gender" in txt:
-                inmate.sex = txt.split(" ")[-1]
-            elif "Ethnicity" in txt:
-                inmate.race = txt.split(" ")[-1]
-            elif "Hair Color" in txt:
-                inmate.hairColor = txt.split(" ")[-1]
-            elif "Eye Color" in txt:
-                inmate.eyeColor = txt.split(" ")[-1]
-            elif "Height" in txt:
-                inmate.height = txt.split(" ")[-2] + txt.split(" ")[-1]
-            elif "Weight" in txt:
-                inmate.weight = txt.split(" ")[-1]
+            elif "Offender Number" in txt:
+                record.inmateId = value
+            elif "Birth Date" in txt:
+                DOB = value.split("/")
+                inmate.DOB = Date(DOB[-1], DOB[0], DOB[1])
+                inmate.age = int(DOB[-1]) - datetime.now().year
+            elif "Sex" in txt:
+                inmate.sex = value
+            elif "Location" in txt:
+                if len(value) != 0:
+                    facility.name = value
+                    facility.state = "IA"
+                    record.facility = facility
+            elif "Offense" in txt:
+                if len(value) != 0:
+                    record.offense = value
+            elif "TDD/SDD" in txt:
+                # TDD = Tentative Discharge Date
+                # SDD = Supervision Discharge Date
+                if len(value) != 0:
+                    releaseDate = value.split("/")
+                    record.estReleaseDate = Date(releaseDate[-1], releaseDate[0], releaseDate[1])
+            elif "Commitment Date" in txt:
+                if len(value) != 0:
+                    admissionDate = value.split("/")
+                    record.admissionDate = Date(admissionDate[-1], admissionDate[0], admissionDate[1])
+            elif "Recall Date" in txt:
+                if len(value) != 0:
+                    paroleHearing = value.split("/")
+                    record.nextParoleHearingDate = Date(paroleHearing[-1], paroleHearing[0], paroleHearing[1])
+            elif "Mandatory Minimum" in txt:
+                if len(value) != 0:
+                    paroleEligibility = value.split("/")
+                    record.paroleEligibilityDate = Date(paroleEligibility[-1], paroleEligibility[0], paroleEligibility[1])
+    inmate.records = []
+    record.state = "IA"
+    inmate.records.append(record)
 
-    backgroundPersonPrisonInfo = backgroundPersonInfo.find_next("tbody")
+    backgroundPersonPrisonInfo = BeautifulSoup(element[1].get_attribute('innerHTML'), 'html.parser')
     personPrisonInfoCells = backgroundPersonPrisonInfo.find_all("tr")
 
     for ind in range(len(personPrisonInfoCells)):
-        cell = personPrisonInfoCells[ind]
-        if not isinstance(cell, NavigableString):
-            txt = " ".join(cell.text.strip().split())
+        row = personPrisonInfoCells[ind]
+        if not isinstance(row, NavigableString):
+            newRecord = InmateRecord()
+            txt = row.find_all('td')
+            lst = []
+            for i in txt:
+                lst.append(i.text)
 
-            if "DOC Number" in txt:
-                # inmate's id given by Colorado Department of Corrections
-                record.recordNumber = txt.split(" ")[-1]
-            elif "Est. Parole Eligibility Date" in txt:
-                dateSplit = txt.split(" ")[-1].split("/")
-                if len(dateSplit) > 1:
-                    record.paroleEligibilityDate = Date(dateSplit[-1], dateSplit[0], dateSplit[1])
-            elif "Next Parole Hearing Date" in txt:
-                dateSplit = txt.split(":")
-                if len(dateSplit) > 1:
-                    record.nextParoleHearingDate = dateSplit[-1].strip()
-            elif "Est. Sentence Discharge Date" in txt:
-                dateSplit = txt.split(" ")[-1].split("/")
-                if len(dateSplit) > 1:
-                    record.estReleaseDate = Date(dateSplit[-1], dateSplit[0], dateSplit[1])
-            elif "Current Facility Assignment" in txt:
-                facility.name = txt.split(":")[-1].strip()
+            newRecord.status = RecordStatus.ACTIVE
+            newRecord.currentSupervisionStatus = lst[0]
+            newRecord.offense = lst[1]
+            newRecord.county = lst[2]
+            newRecord.estReleaseDate = lst[3]
+            newRecord.state = "IA"
+            newRecord.inmateId = record.inmateId
+
+            inmate.records.append(record)
 
     # saves profile to the database
     writeToDB(inmate)
-    browser.find_element_by_id("btn_search_txt").click()
+    browser.back()
     return inmate.name.first + " " + inmate.name.last
 
-def nextButton(browser):
-    """
-    finds the next button and sees if it exists
-    """
-    navigationButtonDiv = browser.find_element_by_xpath("/html/body/div[7]/div[2]/div[2]/div[2]/div[2]")
-    spansSoup = BeautifulSoup(navigationButtonDiv.get_attribute('innerHTML'), 'html.parser')
-    spansList = spansSoup.find_all("span")
-
-    for i in spansList:
-        if "NEXT" in i.text:
-            return True, i
-    return False
 
 def xpath_soup(element):
     """

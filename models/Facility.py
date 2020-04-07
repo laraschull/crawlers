@@ -3,7 +3,7 @@ class Facility:
     def __init__(self):
         self.name = None
         self.state = None
-        # self.generatedID = self.state + "_" + self.name
+        self.generatedID = None
 
     def getDict(self):
         return {"_id": self.generatedID,
@@ -12,4 +12,6 @@ class Facility:
                 }
 
     def getGeneratedID(self):
+        if self.generatedID is not None:
+            self.generatedID = self.name + self.state
         return self.generatedID

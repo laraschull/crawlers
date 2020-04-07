@@ -15,15 +15,11 @@ def generate_inmate_id(name, dob=None):
         else:
             yob = dob
     yob = str(yob)
-    ret = last + "_" + first + "_" + yob
-
-    return(ret)
+    return last + "_" + first + "_" + yob
 
 
-def generate_record_id(state, record_id_num):
+def generate_record_id(state, inmate_num):
     state = state.upper()
     assert(len(state) == 2 or state == "FED")
 
-    ret = state + "_" + record_id_num
-
-    return(ret)
+    return state + "_" + inmate_num

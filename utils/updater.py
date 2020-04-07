@@ -28,8 +28,9 @@ def writeToDB(inmate):
             print("repeat record")
             updateRecord(rec)  # from utils.updater
 
-        if (db.facilities.count_documents({"_id": rec.facility.getGeneratedID()}) == 0):  # insert new record
-            print("new facility")
-            db.facilities.insert_one(rec.facility.getDict())
-        else:  # update existing record
-            print("repeat facility")
+        if rec.facility is not None:
+            if (db.facilities.count_documents({"_id": rec.facility.getGeneratedID()}) == 0):  # insert new record
+                print("new facility")
+                db.facilities.insert_one(rec.facility.getDict())
+            else:  # update existing record
+                print("repeat facility")
