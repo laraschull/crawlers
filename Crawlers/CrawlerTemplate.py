@@ -6,7 +6,6 @@ from models.Date import Date
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
-import re
 from utils.updater import *
 
 chrome_options = Options()
@@ -42,7 +41,7 @@ def baseCrawler(last, first):
 
             soup = BeautifulSoup(browser.page_source, 'html.parser')
             name = saveInmateProfile(soup, browser)
-            print("Done saving record with name ", name)
+            print("Done saving record with name " + name.last + ", " + name.first)
 
         # go to next page, if necessary
         browser.set_page_load_timeout(10)
@@ -60,7 +59,9 @@ def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
     # record.state = "XX"
+    # record.status = (RecordStatus.ACTIVE,INACTIVE)
     facility = Facility()
+    facility.state = record.state
 
     # idName = find in HTML
     inmateID = soup.find(idName).get_text()  # find inmate ID, will go in active record
@@ -152,6 +153,7 @@ def saveInmateProfile(soup, browser):
             inmate.addRecord(record)
     """
 
+    inmate.addRecord(record)
     # saves profile to the database
     writeToDB(inmate)
 
@@ -160,7 +162,7 @@ def saveInmateProfile(soup, browser):
     # click back button
     # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
-    return name
+    return inmate.name
 
 
 """
