@@ -24,7 +24,7 @@ def generate_inmate_id(name, dob=None):
         day = dob["day"]
     day = str(day)
 
-    ret = last + "_" + first + "_" + year + "_" + "0" if len(month) == 1 else "" + month + "_" + "0" if len(day) == 1 else "" + day
+    ret = last + "_" + first + "_" + year + "_" + ("0" if len(month) == 1 else "") + month + "_" + ("0" if len(day) == 1 else "") + day
 
     return(ret)
 

@@ -13,8 +13,8 @@ def updateInmate(inmate):
 
 def updateRecord(record):
     # TODO, make updater intelligently reconcile the data, rather than simply overwrite it
-    db.inmates.delete_one({"_id": record.getGeneratedID()})
-    db.inmates.insert_one(record.getDict())
+    db.records.delete_one({"_id": record.getGeneratedID()})
+    db.records.insert_one(record.getDict())
 
 
 def writeToDB(inmate):

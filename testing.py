@@ -47,6 +47,7 @@ class GeorgiaTest(unittest.TestCase):
                 "estimated": False
             }
         }
+        self.assertEqual(len(data), 1)
         self.assertEqual(Inmate().setByDict(data[0]), Inmate().setByDict(testData))
 
     # when creating a multi test case, look through the corresponding inmate database,
