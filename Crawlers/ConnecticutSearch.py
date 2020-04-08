@@ -13,7 +13,9 @@ from models.Facility import Facility
 from utils.updater import *
 
 chrome_options = Options()
-browser = webdriver.Chrome()
+# chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
+browser = webdriver.Chrome()  # for MAC
+# browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
 
 baseUrl = "http://www.ctinmateinfo.state.ct.us/searchop.asp"
 
@@ -112,5 +114,3 @@ def saveInmateProfile(soup, browser):
     browser.set_page_load_timeout(10)
 
     return name
-
-baseCrawler("Smith", "John")
