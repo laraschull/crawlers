@@ -10,7 +10,6 @@ from models.Date import Date
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
-import re
 from utils.updater import *
 
 chrome_options = Options()
