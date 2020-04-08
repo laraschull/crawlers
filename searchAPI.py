@@ -51,11 +51,24 @@ def search():
     else:
         return "State Not Found"
 
-    results = db.inmates.find({"name.first": first, "name.last": last})
-    results = dumps(results)
+    cursor = db.inmates.find({"name.first": first, "name.last": last})
+
+    pydictResults = []
+    for inmate in cursor:
+        print("inmate and type")
+        print(inmate)
+        print(type(inmate))
+        pydictResults += [inmate]
+    results = pydictResults
 
     # here, we find the matching record data for each inmate
+    print("results and type")
+    print(results)
+    print(type(results))
     for inmate in results:
+        print("inmate and type")
+        print(inmate)
+        print(type(inmate))
         new_records = []
         for record in inmate["records"]:
             new_records += db.records.find({"_id": record})
@@ -90,4 +103,4 @@ def search():
 
     # else return all records
 
-    return results
+    return jsonify(results)

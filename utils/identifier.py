@@ -7,11 +7,24 @@ def generate_inmate_id(name, dob=None):
     first = name.first
     last = name.last
     try:
-        yob = dob.year
+        year = dob.year
     except(AttributeError):
-        yob = dob["year"]
-    yob = str(yob)
-    ret = last + "_" + first + "_" + yob
+        year = dob["year"]
+    year = str(year)
+
+    try:
+        month = dob.month
+    except(AttributeError):
+        month = dob["month"]
+    month = str(month)
+
+    try:
+        day = dob.day
+    except(AttributeError):
+        day = dob["day"]
+    day = str(day)
+
+    ret = last + "_" + first + "_" + year + "_" + "0" if len(month) == 1 else "" + month + "_" + "0" if len(day) == 1 else "" + day
 
     return(ret)
 

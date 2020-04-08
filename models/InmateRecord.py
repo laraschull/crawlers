@@ -55,7 +55,7 @@ class InmateRecord:
             "sentenceDate": self.sentenceDate.getDict() if self.sentenceDate is not None else None,
             "maxReleaseDate": self.maxReleaseDate.getDict() if self.maxReleaseDate is not None else None,
             "estReleaseDate": self.estReleaseDate.getDict() if self.estReleaseDate is not None else None,
-            "facilityID": self.facility.getGeneratedID(),  # db key!
+            "facilityID": self.facility.getGeneratedID() if self.facility is not None else None,  # db key!
             "state": self.state,
             "bondAmt": self.bondAmt,
             "status": self.status.value,

@@ -22,11 +22,16 @@ class Date:
         else:
             if day is not None:
                 self.day = int(day)
+            else:
+                self.day = 0
             if month is not None:
                 self.month = int(month)
+            else:
+                self.month = 0
             self.year = int(year)
         self.estimated = estimated
 
+    @staticmethod
     def ageToDate(age):
         return Date()
 
@@ -39,11 +44,9 @@ class Date:
     def getDict(self):
         return {"day": self.day, "month": self.month, "year": self.year, "estimated": self.estimated}
 
-    def setByDict(self, param):
-        self.day = int(param["day"])
-        self.month = int(param["month"])
-        self.year = int(param["year"])
-        self.estimated = bool(param["estimated"])
+    @staticmethod
+    def setByDict(param):
+        return Date(param["year"], param["month"], param["day"], param["estimated"])
 
     def addTime(self, y, m, d):
         try:

@@ -9,18 +9,24 @@ from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
 import re
 from utils.updater import *
+import time
 
-chrome_options = Options()
-# chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
-# browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
-browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
+
 
 baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
 
 def baseCrawler(last, first):
+    chrome_options = Options()
+    # chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
+    # browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
+    browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
+
     # opening up browser
     browser.set_page_load_timeout(20)
+    time.sleep(2)
     browser.get(baseUrl)
+    time.sleep(2)
+
 
     # agree to terms and conditions
     agreeButton = "submit2"
@@ -34,21 +40,22 @@ def baseCrawler(last, first):
     searchButton = "NextButton2"
     browser.find_element_by_name(searchButton).click()
 
-    try:
-        browser.find_elements_by_xpath("//*[contains(text(), 'Sorry, we couldn')]")
-        nonePage = True
-    except(NoSuchElementException):
-        nonePage = False
+    sorryMessage = browser.find_elements_by_xpath("//*[contains(text(), 'Sorry, we couldn')]")
 
+    nonePage = False
+    single = False
+    if (len(sorryMessage) != 0):
+        nonePage = True
 
     profileXPath = "//input[@value='View Offender Info']"
+    inmateList = browser.find_elements_by_xpath(profileXPath)
+    if (len(inmateList) == 0):
+        single = True
 
     if(nonePage):
-        print("nonePage")
         return
 
     elif(single):
-        print("singlePage")
         soup = BeautifulSoup(browser.page_source, 'html.parser')
         name = saveInmateProfile(soup, browser)
         print("Done saving record with name ", name)
@@ -89,7 +96,6 @@ def saveInmateProfile(soup, browser):
     record = InmateRecord()  # inmate current record
     record.state = "GA"
     facility = Facility()
-
     inmateID = soup.find('h5', text = re.compile('GDC ID:.*')).get_text().strip().split()[-1]  # find inmate ID, will go in active record
 
     # find inmate name
@@ -167,6 +173,7 @@ def saveInmateProfile(soup, browser):
                         facility.name = value
                         facility.state = record.state
                         facility.getGeneratedID()
+                        print("adding fac")
                         record.addFacility(facility)
                     elif entry == 'MAX POSSIBLE RELEASE DATE':
                         record.maxReleaseDate = Date(value)
@@ -186,5 +193,3 @@ def saveInmateProfile(soup, browser):
     browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
-
-baseCrawler("fagan", "chadwick")

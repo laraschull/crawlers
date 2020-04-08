@@ -56,6 +56,6 @@ class Inmate:
         }
 
     def setByDict(self, param):
-        self.name = Name().setByDict(param["name"])
-        self.DOB = Date().setByDict(param["DOB"])
+        self.name = Name.setByDict(param["name"])
+        self.DOB = Date.setByDict(param["DOB"])
         # TODO set other fields

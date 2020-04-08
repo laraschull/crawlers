@@ -43,7 +43,8 @@ class GeorgiaTest(unittest.TestCase):
             "DOB": {
                 "day": None,
                 "month": None,
-                "year": 1976
+                "year": 1976,
+                "estimated": False
             }
         }
         self.assertEqual(Inmate().setByDict(data[0]), Inmate().setByDict(testData))
@@ -62,10 +63,11 @@ class GeorgiaTest(unittest.TestCase):
             "DOB": {
                 "day": None,
                 "month": None,
-                "year": 1971
+                "year": 1971,
+                "estimated": False
             }
         }
-        self.assertEqual(Inmate().setByDict(data[-1]), Inmate().setByDict(testData))
+        self.assertEqual(Inmate().setByDict(data[-1]), Inmate().setByDict(testData))  # not sure if [-1] is a reliable way to index here
 
 if __name__ == '__main__':
     unittest.main()
