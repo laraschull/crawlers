@@ -1,3 +1,7 @@
+# @author __name__
+# Created at: __date__
+# Last updated at: __date__
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
@@ -13,7 +17,7 @@ chrome_options = Options()
 # browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
 browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
 
-#baseUrl = "ADD BASE URL HERE AND UNCOMMENT THIS LINE"
+# baseUrl = "ADD BASE URL HERE AND UNCOMMENT THIS LINE"
 
 def baseCrawler(last, first):
     # opening up browser
