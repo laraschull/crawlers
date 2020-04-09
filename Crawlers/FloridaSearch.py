@@ -82,5 +82,3 @@ def saveInmateProfile(soup, browser):
     # saves profile to the database
     writeToDB(inmate)
     return inmate.name
-
-
