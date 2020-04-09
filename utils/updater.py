@@ -7,6 +7,8 @@ db = client.inmate_database
 
 def updateInmate(inmate):
     # TODO, make updater intelligently reconcile the data, rather than simply overwrite it
+    # TODO, in particular for cross-state inmates and also inmates with partial birth dates
+    # TODO, NY and possibly other states need a way to reconcile known aliases? This may actually not be an issue
     db.inmates.delete_one({"_id": inmate.getGeneratedID()})
     db.inmates.insert_one(inmate.getDict())
 

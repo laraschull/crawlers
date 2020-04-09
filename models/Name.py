@@ -17,6 +17,9 @@ class Name:
     def getDict(self):
         return {"first": self.first, "middle": self.middle, "last": self.last}
 
+    def softEquals(self, obj):  # for when middle name is ignored
+        return self.first == obj.first and self.last == obj.last
+
     @staticmethod
     def setByDict(param):
         first = param["first"]

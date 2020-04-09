@@ -16,6 +16,7 @@ class Inmate:
         self.height = None 
         self.weight = None
         self.hairColor = None
+        self.aliases = []
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -52,10 +53,15 @@ class Inmate:
                 "eyecolor": self.eyeColor,
                 "height": self.height,
                 "weight": self.weight,
-                "hairColor": self.hairColor
+                "hairColor": self.hairColor,
+                "aliases": [x.getDict() for x in self.aliases]
         }
 
     def setByDict(self, param):
         self.name = Name.setByDict(param["name"])
         self.DOB = Date.setByDict(param["DOB"])
         # TODO set other fields
+
+    def addAlias(self, alias):
+        if(alias not in self.aliases) and not alias.softEquals(self.name):
+            self.aliases.append(alias)

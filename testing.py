@@ -70,5 +70,59 @@ class GeorgiaTest(unittest.TestCase):
         }
         self.assertEqual(Inmate().setByDict(data[-1]), Inmate().setByDict(testData))  # not sure if [-1] is a reliable way to index here
 
+
+class NewYorkTest(unittest.TestCase):
+    state = "ny"
+
+    # when creating a none test case, look through the corresponding inmate database,
+    # and find a query (first name and last name) that returns no prisoners
+    # then, fill in the following information to confirm that the query returns no inmates
+    def test_none(self):
+        data = testFlask(self.state, "xxx", "xxx")
+        self.assertEqual([], data)
+
+    # when creating a single test case, look through the corresponding inmate database,
+    # and find a query (first name and last name) that returns exactly one prisoner
+    # then, fill in the following information to confirm that the query returns the correct information
+    def test_single(self):
+        data = testFlask(self.state, "vern", "zytec")
+        testData = {
+            "name": {
+                "first": "VERN",
+                "middle": "",
+                "last": "ZYTEC"
+            },
+            "DOB": {
+                "day": 13,
+                "month": 12,
+                "year": 1947,
+                "estimated": False
+            }
+        }
+        self.assertEqual(len(data), 1)
+        self.assertEqual(Inmate().setByDict(data[0]), Inmate().setByDict(testData))
+
+    # when creating a multi test case, look through the corresponding inmate database,
+    # and find a query (first name and last name) that returns more than one prisoner
+    # fill in the following information to confirm that the query returns the correct information for the last inmate
+    def test_multi(self):
+        data = testFlask(self.state, "jacob", "smith")
+        testData = {
+            "name": {
+                "first": "JACOB",
+                "middle": "S",
+                "last": "SMITH"
+            },
+            "DOB": {
+                "day": 5,
+                "month": 2,
+                "year": 1989,
+                "estimated": False
+            }
+        }
+        self.assertEqual(Inmate().setByDict(data[-1]), Inmate().setByDict(testData))  # not sure if [-1] is a reliable way to index here
+
+
+
 if __name__ == '__main__':
     unittest.main()
