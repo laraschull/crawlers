@@ -17,7 +17,7 @@ class Inmate:
 
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
-            self.generatedID = generate_inmate_id(self.name, self.DOB)
+            self.generatedID = generate_inmate_id(self)
         return self.generatedID
 
     def addRecord(self, record):
@@ -29,7 +29,7 @@ class Inmate:
 
         return {"_id": self.getGeneratedID(),
                 "name": self.name.getDict(),
-                "DOB": self.DOB.getDict(),
+                "DOB": self.DOB.getDict() if self.DOB is not None else None,
                 "records": [x.getGeneratedID() for x in self.records],  # if we only want the record ids to be saved!
                 "sex": self.sex,
                 "race": self.race,
