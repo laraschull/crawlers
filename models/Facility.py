@@ -5,6 +5,9 @@ class Facility:
         self.state = None
         self.generatedID = ""
 
+    def __str__(self):
+        return str(self.getDict())
+
     def getGeneratedID(self):
         self.generatedID = self.state + "_" + self.name.replace(" ", "_")
         return self.generatedID

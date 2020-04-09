@@ -17,21 +17,26 @@ def hello_world():
 
 @app.route('/api/search/')
 def search():
+    state = ""
+    last = ""
+    first = ""
+
+    print(request.args)
 
     if 'state' in request.args:
         state = request.args['state'].upper()
     else:
-        return "Error: No state field provided. Please specify a state."
+        print("Error: No state field provided. Please specify a state.")
 
     if 'first' in request.args:
         first = request.args['first'].upper()
     else:
-        return "Error: No first name field provided. Please specify a first name."
+        print("Error: No first name field provided. Please specify a first name.")
 
     if 'last' in request.args:
         last = request.args['last'].upper()
     else:
-        return "Error: No last name field provided. Please specify a last name."
+        print("Error: No last name field provided. Please specify a last name.")
 
     # instate only records is True by default
     if 'instate' in request.args:
@@ -41,7 +46,7 @@ def search():
 
     # active only records is True by default
     if 'active' in request.args:
-        active = bool(request.args['active'])
+        active = request.args['active'] == "True"
     else:
         active = True
 
@@ -49,15 +54,17 @@ def search():
         print("entering Georgia search")
         Crawlers.GeorgiaSearch.baseCrawler(last, first)
         print("exiting search")
-    if state == "NY":
+    elif state == "NY":
         print("entering New York search")
         Crawlers.NewYorkSearch.baseCrawler(last, first)
         print("exiting search")
     else:
-        return "State Not Found"
+        print("State not found.")
 
     cursor = db.inmates.find({"name.first": first, "name.last": last})
 
+    print("cursor")
+    print(cursor)
     pydictResults = []
     for inmate in cursor:
         print("inmate and type")
@@ -66,10 +73,11 @@ def search():
         pydictResults += [inmate]
     results = pydictResults
 
-    # here, we find the matching record data for each inmate
-    print("results and type")
+    print("results")
+    print(len(results))
     print(results)
-    print(type(results))
+
+    # here, we find the matching record data for each inmate
     for inmate in results:
         print("inmate and type")
         print(inmate)
@@ -79,7 +87,11 @@ def search():
             new_records += db.records.find({"_id": record})
         inmate["records"] = new_records
 
+    print("initial ret:")
+    print(results)
+
     if instate and active:  # returns only inmates with active and in state records. DEFAULT CASE
+        print("returning active, instate records only")
         inStateActiveOnlyResults = []
         for inmate in results:
             for record in inmate["records"]:
@@ -88,7 +100,8 @@ def search():
                     break
         results = inStateActiveOnlyResults
 
-    elif instate:  # returns only inmates with instate records
+    elif instate:  # returns only inmates with instate records AT SOME POINT, NOT NECESSARILY ACTIVE
+        print("returning instate records only")
         inStateOnlyResults = []
         for inmate in results:
             for record in inmate["records"]:
@@ -98,6 +111,7 @@ def search():
         results = inStateOnlyResults
 
     elif active:  # returns only inmates with active records
+        print("returning active records only")
         activeOnlyResults = []
         for inmate in results:
             for record in inmate["records"]:
@@ -106,6 +120,12 @@ def search():
                     break
         results = activeOnlyResults
 
+    else:
+        print("returning all records")
     # else return all records
-
-    return jsonify(results)
+    print("returns tests!!!")
+    print(results)
+    print(type(results))
+    print(type(dumps(results)))
+    print(type(jsonify(results)))
+    return dumps(results)

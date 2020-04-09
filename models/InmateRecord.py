@@ -1,6 +1,5 @@
 from enum import Enum
 from models.Date import Date
-from utils.identifier import *
 
 class RecordStatus(Enum):
     UNDEFINED = -1
@@ -33,7 +32,9 @@ class InmateRecord:
 
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
-            self.generatedID = generate_record_id(self.state, self.recordNumber)
+            self.state = self.state.upper()
+            assert (len(self.state) == 2 or self.state == "FED")
+            self.generatedID = self.state + "_" + self.recordNumber
         return self.generatedID
 
     def getDict(self):
@@ -47,7 +48,7 @@ class InmateRecord:
             self.estReleaseDate = Date(self.estReleaseDate.year, self.estReleaseDate.month, self.estReleaseDate.day)
 
         return{
-            "_id": generate_record_id(self.state, self.recordNumber),  # db key!
+            "_id": self.getGeneratedID(),  # db key!
             "inmateNumber": self.inmateNumber,
             "inmateID": self.inmateID,  # db key!
             "recordNumber": self.recordNumber,

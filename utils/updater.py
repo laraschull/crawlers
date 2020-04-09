@@ -1,4 +1,3 @@
-from utils.identifier import *
 from pymongo import MongoClient
 
 client = MongoClient('localhost', 27017)
@@ -20,7 +19,7 @@ def updateRecord(record):
 
 
 def writeToDB(inmate):
-    if(db.inmates.count_documents({"_id": generate_inmate_id(inmate)}) == 0):  # insert new inmate
+    if(db.inmates.count_documents({"_id": inmate.getGeneratedID()}) == 0):  # insert new inmate
         print("new inmate")
         db.inmates.insert_one(inmate.getDict())
     else:  # update existing inmate

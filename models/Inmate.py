@@ -1,4 +1,3 @@
-from utils.identifier import *
 from models.Name import Name
 from models.Date import Date
 
@@ -31,9 +30,21 @@ class Inmate:
         # TODO add more tests
         return True
 
+    def __str__(self):
+        return str(self.getDict())
+
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
-            self.generatedID = generate_inmate_id(self.name, self.DOB)
+            first = self.name.first
+            last = self.name.last
+            year = str(self.DOB.year)
+            month = str(self.DOB.month)
+            day = str(self.DOB.day)
+
+            gen = last + "_" + first + "_" + year + "_" + ("0" if len(month) == 1 else "") + month + "_" + (
+                "0" if len(day) == 1 else "") + day
+
+            self.generatedID = gen
         return self.generatedID
 
     def addRecord(self, record):
