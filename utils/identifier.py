@@ -1,5 +1,4 @@
 def generate_inmate_id(name, dob=None):
-    # need a way to generate an id for people without a dob
     if dob is None:  # method overloading, no dob means name is actually whole inmate
         inmate = name
         name = inmate.name
@@ -18,5 +17,5 @@ def generate_inmate_id(name, dob=None):
 def generate_record_id(state, record_id_num):
     state = state.upper()
     assert(len(state) == 2 or state == "FED")
-
     return state + "_" + record_id_num
+

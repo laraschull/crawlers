@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
 
 
+
 class Date:
     year = None
     month = None
@@ -31,6 +32,7 @@ class Date:
                 self.month = int(month)
             self.year = int(year)
         self.estimated = estimated
+
 
     def __eq__(self, obj):
         return self.day == obj.day and self.month == obj.month and self.year == obj.year
