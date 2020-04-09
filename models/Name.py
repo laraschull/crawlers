@@ -2,7 +2,7 @@ class Name:
 
     def __init__(self, first, middle, last):
         self.first = first.upper()
-        self.middle = middle.upper()  # put everything but very first and very last here to keep names consistent
+        self.middle = middle.upper() if middle is not None else None
         self.last = last.upper()
 
     def __eq__(self, obj):
