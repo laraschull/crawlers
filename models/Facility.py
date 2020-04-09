@@ -11,7 +11,6 @@ class Facility:
 
     def getDict(self):
         return {"_id": self.getGeneratedID(),
-
                 "name": self.name,
                 "state": self.state
                 }
