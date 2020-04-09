@@ -15,7 +15,6 @@ def generate_inmate_id(name, dob=None):
 
     return last + "_" + first + "_" + yob
 
-
 def generate_record_id(state, record_id_num):
     state = state.upper()
     assert(len(state) == 2 or state == "FED")
