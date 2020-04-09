@@ -32,9 +32,6 @@ class Date:
             self.year = int(year)
         self.estimated = estimated
 
-    def ageToDate(age):
-        return Date()
-
     def __eq__(self, obj):
         return self.day == obj.day and self.month == obj.month and self.year == obj.year
 
