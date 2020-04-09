@@ -9,33 +9,31 @@ from models.Facility import Facility
 import re
 from utils.updater import *
 
-
-
-#baseUrl = "ADD BASE URL HERE AND UNCOMMENT THIS LINE"
+baseUrl = "https://www1.maine.gov/cgi-bin/online/mdoc/search-and-deposit/search.pl?Search=Continue"
 
 def baseCrawler(last, first):
+    # opening up browser
     chrome_options = Options()
     # chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
     # browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
     browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
 
-    # opening up browser
     browser.set_page_load_timeout(20)
     browser.get(baseUrl)
 
     # searching for inmate last names that start with certain character
-    # lastNameBar = find in HTML
+    lastNameBar = "last_name"
     browser.find_element_by_name(lastNameBar).send_keys(last)
-    # firstNameBar = find in HTML
+    firstNameBar = "first_name"
     browser.find_element_by_name(firstNameBar).send_keys(first)
     browser.set_page_load_timeout(10)
-    # searchButton = find in HTML
+    searchButton = "submit"
     browser.find_element_by_name(searchButton).click()
 
     # begin parsing html with beautiful soup
 
     while True:
-        # profileXPath = find in HTML (path to clickable link for each person)
+        profileXPath = "//a[contains(@href,'detail')]"
         profileList = browser.find_elements_by_xpath(profileXPath)
         for i in range(len(profileList)):
             profile = browser.find_elements_by_xpath(profileXPath)[i]
@@ -165,8 +163,4 @@ def saveInmateProfile(soup, browser):
     return name
 
 
-"""
-TESTS:
-baseCrawler(last, first)
-...
-"""
+baseCrawler("", "james")

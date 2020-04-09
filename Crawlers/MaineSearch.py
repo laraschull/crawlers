@@ -1,5 +1,4 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import requests
 from bs4 import BeautifulSoup
 from models.Name import Name
 from models.Date import Date
@@ -10,32 +9,15 @@ import re
 from utils.updater import *
 
 
-
-#baseUrl = "ADD BASE URL HERE AND UNCOMMENT THIS LINE"
-
 def baseCrawler(last, first):
-    chrome_options = Options()
-    # chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
-    # browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
-    browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
+    baseUrl = 'https://www1.maine.gov/cgi-bin/online/mdoc/search-and-deposit/results.pl?mdoc_number=&start_limit=1&status=&first_name=' + first + '&middle_name=&last_name=' + last + '&gender=&weight_from=&weight_to=&feet_from=&inches_from=&feet_to=&inches_to=&age_from=&age_to=&eyecolor=&haircolor=&race=&gender=&mejis_index=&mark=&location=&order_by=mdoc_number'
 
-    # opening up browser
-    browser.set_page_load_timeout(20)
-    browser.get(baseUrl)
-
-    # searching for inmate last names that start with certain character
-    # lastNameBar = find in HTML
-    browser.find_element_by_name(lastNameBar).send_keys(last)
-    # firstNameBar = find in HTML
-    browser.find_element_by_name(firstNameBar).send_keys(first)
-    browser.set_page_load_timeout(10)
-    # searchButton = find in HTML
-    browser.find_element_by_name(searchButton).click()
+    req = request.get(baseUrl)
 
     # begin parsing html with beautiful soup
 
     while True:
-        # profileXPath = find in HTML (path to clickable link for each person)
+        profileXPath = "//a[contains(@href,'detail')]"
         profileList = browser.find_elements_by_xpath(profileXPath)
         for i in range(len(profileList)):
             profile = browser.find_elements_by_xpath(profileXPath)[i]
@@ -165,8 +147,4 @@ def saveInmateProfile(soup, browser):
     return name
 
 
-"""
-TESTS:
-baseCrawler(last, first)
-...
-"""
+baseCrawler("", "james")
