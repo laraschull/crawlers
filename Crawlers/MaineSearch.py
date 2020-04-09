@@ -10,40 +10,58 @@ from utils.updater import *
 
 
 def baseCrawler(last, first):
-    baseUrl = 'https://www1.maine.gov/cgi-bin/online/mdoc/search-and-deposit/results.pl?mdoc_number=&start_limit=1&status=&first_name=' + first + '&middle_name=&last_name=' + last + '&gender=&weight_from=&weight_to=&feet_from=&inches_from=&feet_to=&inches_to=&age_from=&age_to=&eyecolor=&haircolor=&race=&gender=&mejis_index=&mark=&location=&order_by=mdoc_number'
+    s = requests.Session()
+    my_cookie = {
+        "name": 'mdoc',
+        "value": 'eyecolor&&status&&age_from&&order_by&mdoc_number&last_name&&mark&&inches_from&&haircolor&&weight_from&&race&&feet_to&&gender&&mejis_index&&location&&feet_from&&inches_to&&middle_name&&age_to&&weight_to&&mdoc_number&&start_limit&1&first_name&James',
+        "domain": 'www1.maine.gov',
+        "path": "/",
+        "expires": "2020-04-10T19:10:17.178Z",
+        "secure": "True",
+    }
+    s.cookies.set(**my_cookie)
 
-    req = request.get(baseUrl)
+    baseUrl = 'https://www1.maine.gov/cgi-bin/online/mdoc/search-and-deposit/results.pl?mdoc_number=&start_limit=1&status=&first_name=' + first + '&middle_name=&last_name=' + last + '&gender=&weight_from=&weight_to=&feet_from=&inches_from=&feet_to=&inches_to=&age_from=&age_to=&eyecolor=&haircolor=&race=&gender=&mejis_index=&mark=&location=&order_by=mdoc_number'
+    headers = {"User-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36"}
+    req = s.get(baseUrl, headers=headers)
+
+
 
     # begin parsing html with beautiful soup
+    soup = BeautifulSoup(req.text, 'html.parser')
+    print(soup)
 
-    while True:
-        profileXPath = "//a[contains(@href,'detail')]"
-        profileList = browser.find_elements_by_xpath(profileXPath)
+    pagesRemaining = True
+
+    while pagesRemaining:
+
+        profileList = soup.find_all('a')#, href=re.compile('detail*'))
+        print(profileList)
         for i in range(len(profileList)):
-            profile = browser.find_elements_by_xpath(profileXPath)[i]
-            browser.set_page_load_timeout(10)
-            profile.click()
+            profile = profileList[i]
+            print(profile)
+        raise SystemExit(0)
 
-            soup = BeautifulSoup(browser.page_source, 'html.parser')
-            name = saveInmateProfile(soup, browser)
-            print("Done saving record with name ", name)
+'''
+            inmateUrl = ???
 
-        # go to next page, if necessary
-        browser.set_page_load_timeout(10)
-        # nextName = find in HTML
-        browser.find_element_by_id(nextName).click()
+            inmate = saveInmateProfile(inmateUrl)
 
-        # implement way to break loop if on the last page (ex. "next" button attribute)
-        if True:
-            break
+            print("Done saving record with name ", inmate.name)
 
-    browser.quit()
+        if THERE IS NO NEXT BUTTON:
+            pagesRemaining = False
+        else:
+            nextUrl = ???
+            req = requests.get(nextUrl)
+            soup = BeautifulSoup(req.text, 'html.parser')
+
 
 
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    # record.state = "XX"
+    record.state = "ME"
     facility = Facility()
 
     # idName = find in HTML
@@ -144,7 +162,7 @@ def saveInmateProfile(soup, browser):
     # click back button
     # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
-    return name
+    return inmate
 
-
+'''
 baseCrawler("", "james")

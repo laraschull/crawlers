@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup
 from models.Name import Name
 from models.Date import Date
@@ -31,27 +32,26 @@ def baseCrawler(last, first):
     browser.find_element_by_name(searchButton).click()
 
     # begin parsing html with beautiful soup
-
-    while True:
+    morePages = True
+    while morePages:
         profileXPath = "//a[contains(@href,'detail')]"
-        profileList = browser.find_elements_by_xpath(profileXPath)
+        profileList = browser.find_elements_by_xpath(profileXPath)[0::2]
         for i in range(len(profileList)):
-            profile = browser.find_elements_by_xpath(profileXPath)[i]
+            profile = browser.find_elements_by_xpath(profileXPath)[0::2][i]
             browser.set_page_load_timeout(10)
             profile.click()
 
             soup = BeautifulSoup(browser.page_source, 'html.parser')
-            name = saveInmateProfile(soup, browser)
-            print("Done saving record with name ", name)
+            inmate = saveInmateProfile(soup, browser)
+            print("Done saving record with name ", inmate.name)
 
         # go to next page, if necessary
         browser.set_page_load_timeout(10)
         # nextName = find in HTML
-        browser.find_element_by_id(nextName).click()
-
-        # implement way to break loop if on the last page (ex. "next" button attribute)
-        if True:
-            break
+        try:
+            browser.find_element_by_xpath("//*[contains(text(), 'Next 30 results')]").click()
+        except(NoSuchElementException):
+            morePages = False
 
     browser.quit()
 
@@ -59,98 +59,59 @@ def baseCrawler(last, first):
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
     record = InmateRecord()  # inmate current record
-    # record.state = "XX"
+    record.state = "ME"
     facility = Facility()
-
-    # idName = find in HTML
-    inmateID = soup.find(idName).get_text()  # find inmate ID, will go in active record
-
-    # find inmate name
-    # name = find in HTML
-    # EX: name = soup.find('h4', text = re.compile('NAME:.*')).get_text().strip('NAME:').strip()
-    # finds text that includes "NAME:, for example; regex"
-    lastName, firstNames = name.split(',')  # only if "last, first" order; otherwise vice versa
-    firstNames = firstNames.split()
-    firstName = firstNames[0]
-    middleName = "" if len(firstNames[1:]) == 0 else " ".join(firstNames[1:])
-    inmate.name = Name(firstName, middleName, lastName)
+    facility.state = "ME"
 
     # find way to parse and collect rest of info; will vary with different crawlers
+    tables = soup.findAll('table')
+    inmateTable = tables[4]
 
-    """
-    GENERAL FORMAT: create an inmate object, add all relevant information to it. Create record object(s), fill
-    in as seen fitting. Make sure mark active records as such. Call Inmate.addRecord(record) to add the record to the 
-    inmate profile.
+    for row in inmateTable.findAll("tr"):
+    # loop thru table of inmate's information
+        allTd = row.findAll('td')
 
-    Georgia example:
+        try:
+            entry = allTd[0].text.strip()
+            value = allTd[1].text.strip()
+        except IndexError:
+            print("Not a valid table entry field")
+            continue
+        print(entry, value)
+        if entry == "MDOC Number:":
+            record.inmateNumber = value
+        elif entry == "Last Name, First Name, Middle Initial:":
+            inmate.name = Name.getByLFM(value)
+        elif entry == "Date of Birth:":
+            dob = value.split("/")
+            inmate.DOB = Date(int(dob[2]), int(dob[0]), int(dob[1]))  # year, month, day
+        elif entry == "Gender:":
+            inmate.sex = value
+        elif entry == "Race/Ethnicity:":
+            inmate.race = value
+        elif entry == "Eye Color:":
+            inmate.eyeColor = value
+        elif entry == "Height:":
+            inmate.height = value
+        elif entry == "Weight (Pounds):":
+            inmate.weight = value
+        elif entry == "Hair Color:":
+            inmate.hairColor = value
+        elif entry == "Current Location:":
+            facility.name = value
+        elif entry == "Date of Sentence:":
+            dos = value.split("/")
+            if len(dos) > 1:
+                record.sentenceDate = Date(int(dos[2]), int(dos[0]), int(dos[1]))
+        elif entry == "Estimated Release Date:":
+            erd = value.split("/")
+            if len(erd) > 1:
+                record.estReleaseDate = Date(int(erd[2]), int(erd[0]), int(erd[1]))
+        elif entry == "Controlling Offense*:":
+            record.offense = value
+        elif entry == "Headshot":
+            inmate.headshot = value
 
-    info = soup.findAll('p')
-    caseNumbers = [x.text.strip('CASE NO:').strip() for x in soup.findAll('h7')]
-    recordCounter = 0
-    for row in info:
-        if row and 'class="offender"' in str(row): 
-            data = row.text.split('\n')
-            data = map(str.strip, data)
-            data = list(filter(None, data)) 
-            # past convictions
-            if any("SENTENCE LENGTH" in s for s in data):
-                for info in data:
-                    try:
-                        entry, value = info.split(': ')
-                    except:
-                        continue
-                    if entry == 'OFFENSE':
-                        past_record = InmateRecord()
-                        past_record.inmateNumber = inmateID
-                        past_record.status = RecordStatus.INACTIVE
-                        past_record.state = "GA"
-                        past_record.offense = value
-                    elif entry == 'CRIME COMMIT DATE':
-                        past_record.sentenceDate = Date(value)
-                    elif entry == 'SENTENCE LENGTH':
-                        past_record.estReleaseDate = past_record.sentenceDate
-                        try:
-                            (paramY, paramM, paramD) = [int(x.strip().split()[0]) for x in value.split(",")]
-                        except(ValueError):
-                            (paramY, paramM, paramD) = (None, None, None)
-                        past_record.estReleaseDate.addTime(paramY, paramM, paramD)
-                        past_record.estReleaseDate.estimated = True
-                        past_record.recordNumber = caseNumbers[recordCounter]
-                        inmate.addRecord(past_record)
-                        recordCounter += 1
-            # information about current conviction
-            else:
-                for trait in data:
-                    try:
-                        entry, value = trait.split(': ')
-                    except:
-                        continue
-                    if entry == 'RACE':
-                        inmate.race = value
-                    elif entry == 'GENDER':
-                        inmate.sex = value
-                    elif entry == 'HEIGHT':
-                        inmate.height = value
-                    elif entry == 'EYE COLOR':
-                        inmate.eyeColor = value
-                    elif entry == 'YOB':
-                        inmate.DOB = Date(value)
-                    elif entry == 'WEIGHT':
-                        inmate.weight = value
-                    elif entry == 'HAIR COLOR':
-                        inmate.hairColor = value
-                    elif entry == 'MOST RECENT INSTITUTION':
-                        facility.name = value
-                        facility.state = record.state
-                        record.addFacility(facility)
-                    elif entry == 'MAX POSSIBLE RELEASE DATE':
-                        record.maxReleaseDate = Date(value)
-                        record.status = RecordStatus.ACTIVE
-            record.recordNumber = caseNumbers[0]
-            record.status = RecordStatus.ACTIVE
-            record.inmateNumber = inmateID
-            inmate.addRecord(record)
-    """
 
     # saves profile to the database
     writeToDB(inmate)
@@ -158,9 +119,9 @@ def saveInmateProfile(soup, browser):
     browser.set_page_load_timeout(10)
 
     # click back button
-    # EX: browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
+    browser.find_element_by_xpath("//input[@value='Back to Search Results']").click()
 
-    return name
+    return inmate
 
 
-baseCrawler("", "james")
+baseCrawler("", "ran")

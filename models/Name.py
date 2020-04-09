@@ -26,3 +26,13 @@ class Name:
         middle = param["middle"]
         last = param["last"]
         return Name(first, middle, last)
+
+    @staticmethod
+    def getByLFM(param):
+        last = param.split(",")[0].strip()
+        first = param.split(",")[1].strip().split()[0]
+        try:
+            middle = param.split(",")[1].strip().split()[1]
+        except(IndexError):
+            middle = ""
+        return Name(first, middle, last)
