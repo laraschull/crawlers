@@ -1,5 +1,5 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import timedelta, datetime
+
 
 
 class Date:
@@ -11,6 +11,12 @@ class Date:
 
         if year == "N/A" or year == "LIFE" or year == "NOT":
             return
+        elif estimated is True:
+            age = year
+            now = datetime.now()
+            self.year = now.year - int(age)
+            self.month = now.month
+            self.day = now.day
         elif isinstance(year, str) and "/" in year:
             try:
                 [m, d, y] = year.split("/")
@@ -27,8 +33,6 @@ class Date:
             self.year = int(year)
         self.estimated = estimated
 
-    def ageToDate(age):
-        return Date()
 
     def __eq__(self, obj):
         return self.day == obj.day and self.month == obj.month and self.year == obj.year
