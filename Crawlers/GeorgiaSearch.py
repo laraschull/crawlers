@@ -172,7 +172,6 @@ def saveInmateProfile(soup, browser):
                         facility.name = value
                         facility.state = record.state
                         facility.getGeneratedID()
-                        print("adding fac")
                         record.addFacility(facility)
                     elif entry == 'MAX POSSIBLE RELEASE DATE':
                         record.maxReleaseDate = Date(value)

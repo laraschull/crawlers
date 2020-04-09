@@ -19,13 +19,10 @@ class Inmate:
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
-            print("classes unequal")
             return False
         if not self.name == other.name:
-            print("names unequal")
             return False
         if not self.DOB == other.DOB:
-            print("DOBs unequal")
             return False
         # TODO add more tests
         return True

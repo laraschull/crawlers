@@ -40,58 +40,43 @@ def search():
 
     # instate only records is True by default
     if 'instate' in request.args:
-        instate = bool(request.args['instate'])
+        instate = request.args['instate'][0:1].upper() == "T"
     else:
         instate = True
 
     # active only records is True by default
     if 'active' in request.args:
-        active = request.args['active'] == "True"
+        active = request.args['active'][0:1].upper() == "T"
     else:
         active = True
 
     if state == "GA":
-        print("entering Georgia search")
+        print("Entering Georgia search...")
         Crawlers.GeorgiaSearch.baseCrawler(last, first)
-        print("exiting search")
+        print("Exiting Georgia search!")
     elif state == "NY":
-        print("entering New York search")
+        print("Entering New York search...")
         Crawlers.NewYorkSearch.baseCrawler(last, first)
-        print("exiting search")
+        print("Exiting New York search!")
     else:
         print("State not found.")
 
     cursor = db.inmates.find({"name.first": first, "name.last": last})
 
-    print("cursor")
-    print(cursor)
     pydictResults = []
     for inmate in cursor:
-        print("inmate and type")
-        print(inmate)
-        print(type(inmate))
         pydictResults += [inmate]
     results = pydictResults
 
-    print("results")
-    print(len(results))
-    print(results)
-
     # here, we find the matching record data for each inmate
     for inmate in results:
-        print("inmate and type")
-        print(inmate)
-        print(type(inmate))
         new_records = []
         for record in inmate["records"]:
             new_records += db.records.find({"_id": record})
         inmate["records"] = new_records
 
-    print("initial ret:")
-    print(results)
-
     if instate and active:  # returns only inmates with active and in state records. DEFAULT CASE
-        print("returning active, instate records only")
+        print("Returning instate, active inmates that meet search query.")
         inStateActiveOnlyResults = []
         for inmate in results:
             for record in inmate["records"]:
@@ -101,7 +86,7 @@ def search():
         results = inStateActiveOnlyResults
 
     elif instate:  # returns only inmates with instate records AT SOME POINT, NOT NECESSARILY ACTIVE
-        print("returning instate records only")
+        print("Returning all instate inmates that meet search query.")
         inStateOnlyResults = []
         for inmate in results:
             for record in inmate["records"]:
@@ -111,7 +96,7 @@ def search():
         results = inStateOnlyResults
 
     elif active:  # returns only inmates with active records
-        print("returning active records only")
+        print("Returning all active inmates that meet search query.")
         activeOnlyResults = []
         for inmate in results:
             for record in inmate["records"]:
@@ -121,11 +106,6 @@ def search():
         results = activeOnlyResults
 
     else:
-        print("returning all records")
-    # else return all records
-    print("returns tests!!!")
-    print(results)
-    print(type(results))
-    print(type(dumps(results)))
-    print(type(jsonify(results)))
+        print("Returning all inmates that meet search query.")
+
     return dumps(results)

@@ -56,6 +56,7 @@ def baseCrawler(last, first):
             currentRow = listOfInmates[x]
             try:
                 inmate = extract(browser, x)
+                print("Done saving record with name ", inmate.name)
             except(AttributeError):
                 done = True
                 break
@@ -138,7 +139,6 @@ def extractInmate(data):
         if entry == "Date of Birth":
             dob = value.split("/")
             inmate.DOB = Date(int(dob[2]), int(dob[0]), int(dob[1]))  # year, month, day
-            print("inmate DOB", inmate.DOB)
         elif entry == "Sex":
             inmate.sex = value
         elif entry == "Race / Ethnicity":
@@ -219,9 +219,7 @@ def extractRecord(data, inmate, facility):
         if entry == "Latest Release Date / Type (Released Inmates Only)":
             # this means the next row will have the offense in entry and the offense class in value
             nextCrime = True
-    print("adding an inmate record:")
-    print("inmate:")
-    print(inmate)
+
     inmate.addRecord(record)
 
     return record
@@ -233,11 +231,6 @@ def extractFirst(soup):
     facility = extractFacility(data)
     record = extractRecord(data, inmate, facility)
 
-    print("FIRST!!!!!!!!!!!!")
-    print(inmate)
-    print(record)
-    print(facility)
-
     return inmate
 
 
@@ -248,11 +241,6 @@ def extractExtra(soup, inmate):
     inmate.addAlias(name)
     facility = extractFacility(data)
     record = extractRecord(data, inmate, facility)
-
-    print("EXTRA!!!!!!!!!!!!!")
-    print(inmate)
-    print(record)
-    print(facility)
 
     return inmate
 
