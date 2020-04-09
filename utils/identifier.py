@@ -7,23 +7,17 @@ def generate_inmate_id(name, dob=None):
 
     first = name.first
     last = name.last
-    try:
-        yob = dob.year
-    except(AttributeError):
-        if dob is not None:
-            yob = dob["year"]
-        else:
-            yob = dob
-    yob = str(yob)
-    ret = last + "_" + first + "_" + yob
 
-    return(ret)
+    try:
+        yob = str(dob.year)
+    except(AttributeError):
+        yob = str(dob)
+
+    return last + "_" + first + "_" + yob
 
 
 def generate_record_id(state, record_id_num):
     state = state.upper()
     assert(len(state) == 2 or state == "FED")
 
-    ret = state + "_" + record_id_num
-
-    return(ret)
+    return state + "_" + record_id_num
