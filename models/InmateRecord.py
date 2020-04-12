@@ -37,7 +37,7 @@ class InmateRecord:
 
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
-            self.generatedID = generate_record_id(self.state, self.inmateId)
+            self.generatedID = generate_record_id(self.state, self.recordNumber)
         return self.generatedID
 
     def getDict(self):

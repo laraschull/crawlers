@@ -5,6 +5,7 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from models.Name import Name
+from selenium.common.exceptions import NoSuchElementException
 from models.Date import Date
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
@@ -29,23 +30,27 @@ def baseCrawler(last, first):
     browser.find_element_by_name(firstNameBar).send_keys(first)
     searchButton = "ctl00$ContentPlaceHolder1$btnSubmit1"
     browser.find_element_by_name(searchButton).click()
-    firstInmateXPath = "// *[ @ id = 'ctl00_ContentPlaceHolder1_grdList'] / tbody / tr[2] / td[2] / a"
-    browser.find_element_by_xpath(firstInmateXPath).click()
+    try:
+        firstInmateXPath = "// *[ @ id = 'ctl00_ContentPlaceHolder1_grdList'] / tbody / tr[2] / td[2] / a"
+        browser.find_element_by_xpath(firstInmateXPath).click()
+    except NoSuchElementException:
+        print("No valid profiles match this search.")
+    else:
 
-    while True:
+        while True:
 
-        soup = BeautifulSoup(browser.page_source, 'html.parser')
-        saveInmateProfile(soup, browser)
-        browser.set_page_load_timeout(10)
-
-        nextName = "ctl00$ContentPlaceHolder1$btnDetailNext"
-        nextButton = browser.find_element_by_name(nextName)
-        # if last page, break loop; else, continue to next page
-        if nextButton.get_attribute("disabled") == "true":
-            break
-        else:
-            nextButton.click()
+            soup = BeautifulSoup(browser.page_source, 'html.parser')
+            saveInmateProfile(soup, browser)
             browser.set_page_load_timeout(10)
+
+            nextName = "ctl00$ContentPlaceHolder1$btnDetailNext"
+            nextButton = browser.find_element_by_name(nextName)
+            # if last page, break loop; else, continue to next page
+            if nextButton.get_attribute("disabled") == "true":
+                break
+            else:
+                nextButton.click()
+                browser.set_page_load_timeout(10)
 
 
     browser.quit()
@@ -57,7 +62,10 @@ def saveInmateProfile(soup, browser):
     record.state = "FL"
     facility = Facility()
     facility.state = record.state
-    inmate.headshot = browser.find_element_by_id("ctl00_ContentPlaceHolder1_imgPhoto").get_attribute("src")
+    try:
+        inmate.headshot = browser.find_element_by_id("ctl00_ContentPlaceHolder1_imgPhoto").get_attribute("src")
+    except NoSuchElementException:
+        print("No headshot.")
     infoTable = soup.findAll("td")
     record.recordNumber = infoTable[0].text
     fullName = infoTable[1].text
