@@ -39,17 +39,19 @@ def baseCrawler(last, first):
     listOfInmates = body.findAll("tr")
 
     # begin parsing html with beautiful soup
+    if len(listOfInmates) < 3:
+        print("No valid profile that matches this name.")
+    else:
+        for i in range(1, len(listOfInmates) - 1):
+            currentInmate = listOfInmates[i]
+            cells = currentInmate.findAll("td")
+            url = "http://www.ctinmateinfo.state.ct.us/" + cells[0].find('a')['href']
+            browser.set_page_load_timeout(10)
+            browser.get(url)
 
-    for i in range(1, len(listOfInmates) - 1):
-        currentInmate = listOfInmates[i]
-        cells = currentInmate.findAll("td")
-        url = "http://www.ctinmateinfo.state.ct.us/" + cells[0].find('a')['href']
-        browser.set_page_load_timeout(10)
-        browser.get(url)
-
-        profileSource = browser.page_source
-        profileSoup = BeautifulSoup(profileSource, 'html.parser')
-        name = saveInmateProfile(profileSoup, browser)
+            profileSource = browser.page_source
+            profileSoup = BeautifulSoup(profileSource, 'html.parser')
+            saveInmateProfile(profileSoup, browser)
 
     browser.quit()
 
@@ -113,5 +115,3 @@ def saveInmateProfile(soup, browser):
     browser.set_page_load_timeout(10)
 
     return name
-
-baseCrawler("Smith", "John")
