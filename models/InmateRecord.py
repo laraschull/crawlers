@@ -11,8 +11,8 @@ class InmateRecord:
     status = RecordStatus
     def __init__(self):
         self.generatedID = ""
-        self.inmateId = None  # db key!
-        self.recordNumber = None
+        self.recordNumber = None  # db key! This is the value (usually 6 characters) that is used by every database
+        self.inmateId = None  # optional number that may be found on some databases
         self.admissionDate = None
         self.sentenceDate = None
         self.maxReleaseDate = None
@@ -37,7 +37,7 @@ class InmateRecord:
 
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
-            self.generatedID = generate_record_id(self.state, self.inmateId)
+            self.generatedID = generate_record_id(self.state, self.recordNumber)
         return self.generatedID
 
     def getDict(self):
