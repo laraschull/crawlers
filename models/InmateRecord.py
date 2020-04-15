@@ -6,6 +6,7 @@ class RecordStatus(Enum):
     UNDEFINED = -1
     INACTIVE = 0
     ACTIVE = 1
+    PAROLE = 2
 
 class InmateRecord:
     status = RecordStatus
@@ -25,7 +26,7 @@ class InmateRecord:
         self.bondAmt = None
         self.status = RecordStatus.UNDEFINED
         self.currentSupervisionStatus = None
-        self.offense = ""
+        self.offenses = []
 
     def __str__(self):
         return str(self.getDict())
@@ -67,7 +68,7 @@ class InmateRecord:
             "bondAmt": self.bondAmt,
             "status": self.status.value,
             "supervisionStatus": self.currentSupervisionStatus,
-            "offense": self.offense,
+            "offenses": self.offenses,
         }
 
     def addFacility(self, facility):

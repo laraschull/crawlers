@@ -4,6 +4,7 @@ class Facility:
         self.name = None
         self.state = None
         self.generatedID = ""
+        self.parole = False
 
     def getGeneratedID(self):
         self.generatedID = self.state + "_" + self.name.replace(" ", "_")

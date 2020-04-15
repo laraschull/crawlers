@@ -11,13 +11,8 @@ from utils.updater import *
 
 chrome_options = Options()
 # chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
-<<<<<<< HEAD
-browser = webdriver.Chrome("./chromedriver", options=chrome_options)  # for MAC
+browser = webdriver.Chrome("../chromedriver", options=chrome_options)  # for MAC
 # browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
-=======
-# browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
-browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
->>>>>>> 0af1e1226e0a75724c58ab81654bbbb81d90e150
 
 baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
 
@@ -112,7 +107,7 @@ def saveInmateProfile(soup, browser):
                         past_record.inmateNumber = inmateID
                         past_record.status = RecordStatus.INACTIVE
                         past_record.state = "GA"
-                        past_record.offense = value
+                        past_record.offenses = [value]
                     elif entry == 'CRIME COMMIT DATE':
                         past_record.sentenceDate = Date(value)
                     elif entry == 'SENTENCE LENGTH':
@@ -171,7 +166,3 @@ def saveInmateProfile(soup, browser):
     browser.find_element_by_xpath("//a[text()=' Return to previous screen']").click()
 
     return name
-<<<<<<< HEAD
-
-=======
->>>>>>> 0af1e1226e0a75724c58ab81654bbbb81d90e150

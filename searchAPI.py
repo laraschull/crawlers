@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import Crawlers.GeorgiaSearch as ga_search
+import Crawlers.MississippiSearch as ms_search
 from pymongo import MongoClient
 from bson.json_util import dumps
 
@@ -36,9 +37,13 @@ def search():
         print("entering Georgia search")
         ga_search.baseCrawler(last, first)
         print("exiting search")
+    elif state == "MS":
+        print("entering Mississippi search")
+        ms_search.baseCrawler(last, first)
+        print("exiting search")
     else:
         return "State Not Found"
 
     results = db.inmates.find( { "name.first": first, "name.last": last } )
-t
+
     return dumps(results)
