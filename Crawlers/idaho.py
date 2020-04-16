@@ -8,9 +8,11 @@ from models.InmateRecord import InmateRecord, RecordStatus
 from models.Facility import Facility
 from utils.updater import *
 
-Browser = webdriver.Chrome()  # for Windows
+Browser = webdriver.Chrome()
 
 baseUrl = "https://www.idoc.idaho.gov/content/prisons/offender_search"
+client = MongoClient('localhost', 27017)
+db = client.inmate_database
 
 def baseCrawler(last, first):
     # opening up browser
@@ -36,15 +38,15 @@ def baseCrawler(last, first):
         except:
             continue
 
-    # for i in range(len(profiles)):
-    for i in range(1):
+    for i in range(len(profiles)):
+    # for i in range(1):
         Browser.get("https://www.idoc.idaho.gov/content/prisons/offender_search/" + profiles[i])
         profilePage = BeautifulSoup(Browser.page_source, 'html.parser')
         saveInmateProfile(profilePage, Browser)
+        Browser.find_element_by_xpath("//*[@id='main']/div[1]/a[4]")
     Browser.quit()
 
 # https://www.idoc.idaho.gov/content/prisons/offender_search/
-
 
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
