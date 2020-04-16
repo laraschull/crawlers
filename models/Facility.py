@@ -14,3 +14,8 @@ class Facility:
                 "name": self.name,
                 "state": self.state
                 }
+
+    def getGeneratedID(self):
+        if self.generatedID is not None:
+            self.generatedID = self.name + self.state
+        return self.generatedID
