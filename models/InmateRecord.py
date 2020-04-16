@@ -6,6 +6,7 @@ class RecordStatus(Enum):
     UNDEFINED = -1
     INACTIVE = 0
     ACTIVE = 1
+    PAROLE = 2
 
 class InmateRecord:
     status = RecordStatus
@@ -19,6 +20,7 @@ class InmateRecord:
         self.estReleaseDate = None
         self.paroleEligibilityDate = None
         self.nextParoleHearingDate = None
+        self.dateOfOffense = None
         self.facility = None
         self.state = None
         self.county = None
@@ -61,6 +63,7 @@ class InmateRecord:
             "estReleaseDate": self.estReleaseDate.getDict() if self.estReleaseDate is not None else None,
             "paroleEligibilityDate": self.paroleEligibilityDate,
             "nextParoleHearingDate": self.nextParoleHearingDate,
+            "dateOfOffense": self.dateOfOffense,
             "facilityID": self.facility.getGeneratedID(),  # db key!
             "state": self.state,
             "county": self.county,

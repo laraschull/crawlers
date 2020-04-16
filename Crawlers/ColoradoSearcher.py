@@ -77,7 +77,6 @@ def saveInmateProfile(browser):
                 middleName = fullName[-1] if len(fullName) == 4 else None
                 inmate.name = Name(firstName, middleName, lastName)
             elif "Age" in txt:
-                inmate.age = txt.split(" ")[-1]
                 inmate.DOB = Date(inmate.age, None, None, True)
             elif "Gender" in txt:
                 inmate.sex = txt.split(" ")[-1]

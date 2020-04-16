@@ -85,7 +85,6 @@ def saveInmateProfile(browser):
             elif "Birth Date" in txt:
                 DOB = value.split("/")
                 inmate.DOB = Date(DOB[-1], DOB[0], DOB[1])
-                inmate.age = int(DOB[-1]) - datetime.now().year
             elif "Sex" in txt:
                 inmate.sex = value
             elif "Location" in txt:
