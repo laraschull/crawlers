@@ -6,6 +6,7 @@ class RecordStatus(Enum):
     UNDEFINED = -1
     INACTIVE = 0
     ACTIVE = 1
+    PAROLE = 2
 
 class InmateRecord:
     status = RecordStatus
