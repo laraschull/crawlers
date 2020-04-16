@@ -3,8 +3,6 @@ import re
 from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import NavigableString, BeautifulSoup
 from models.Name import Name
-from string import ascii_lowercase
-from datetime import datetime
 import time
 from models.Inmate import Inmate
 from models.InmateRecord import InmateRecord, RecordStatus
@@ -30,7 +28,7 @@ def baseCrawler(last, first):
 
     browser.implicitly_wait(5)
 
-    #get list of people
+    # get list of people
     profileList = browser.find_elements_by_class_name("offenderRow")
 
     for i in range(len(profileList)):
@@ -54,7 +52,8 @@ def saveInmateProfile(browser):
     facility = Facility()
 
     # find inmate ID, will go in active record
-    # browser.implicitly_wait(3)
+    browser.implicitly_wait(3)
+
 
     backgroundPersonInfo = BeautifulSoup(browser.find_element_by_id("pnlResults").get_attribute('innerHTML'),
                                          'html.parser')
@@ -75,6 +74,7 @@ def saveInmateProfile(browser):
     inmate.DOB = Date(DOB[2], DOB[0], DOB[1])
     inmate.headshot = "http://mdocweb.state.mi.us/OTIS2/" + str(backgroundPersonInfo.find(id="imgOffender")['src'])
 
+
     currentStatus = BeautifulSoup(browser.find_element_by_id("pnlStatusAlias").get_attribute('innerHTML'),
                                   'html.parser')
     record.status = RecordStatus.ACTIVE
@@ -88,6 +88,7 @@ def saveInmateProfile(browser):
     if len(maxReleaseDate) == 3:
         record.maxReleaseDate = Date(maxReleaseDate[2], maxReleaseDate[0], maxReleaseDate[1])
     record.state = "MI"
+
 
     activePrisonSentences = BeautifulSoup(browser.find_element_by_id("pnlPASentences").get_attribute('innerHTML'),
                                           'html.parser')
@@ -110,6 +111,7 @@ def saveInmateProfile(browser):
             elif "County" in text:
                 record.county = childText
 
+
     inactivePrisonSentences = BeautifulSoup(browser.find_element_by_id("pnlPISentences").get_attribute('innerHTML'),
                                             'html.parser')
     for child in inactivePrisonSentences.findChildren("div"):
@@ -131,6 +133,7 @@ def saveInmateProfile(browser):
             elif "County" in text:
                 record.county = childText
 
+
     activeProbationSentences = BeautifulSoup(browser.find_element_by_id("pnlRASentences").get_attribute('innerHTML'),
                                              'html.parser')
     for child in activeProbationSentences.findChildren("div"):
@@ -151,6 +154,7 @@ def saveInmateProfile(browser):
                 record.dateOfOffense = Date(DOF[2], DOF[0], DOF[1])
             elif "County" in text:
                 record.county = childText
+
 
     inactiveProbationSentences = BeautifulSoup(browser.find_element_by_id("pnlRISentences").get_attribute('innerHTML'),
                                             'html.parser')
@@ -185,5 +189,6 @@ TESTS:
 baseCrawler("abrams", "")
 
 # change this to crawl the entire database
+# this website needs whole last name to get person
 # for s in ascii_lowercase:
 #     baseCrawler(s, "")
