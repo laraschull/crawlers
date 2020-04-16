@@ -23,7 +23,8 @@ class Inmate:
     def addRecord(self, record):
         record.inmateID = self.getGeneratedID()
         if record.getGeneratedID() not in [x.getGeneratedID() for x in self.records]:
-            self.records += [record]
+            # self.records += [record]
+            self.records.append(record)
 
     def getDict(self):
 

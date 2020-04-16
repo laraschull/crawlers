@@ -88,85 +88,45 @@ def saveInmateProfile(browser):
     if len(maxReleaseDate) == 3:
         record.maxReleaseDate = Date(maxReleaseDate[2], maxReleaseDate[0], maxReleaseDate[1])
     record.state = "MI"
+    inmate.addRecord(record)
 
 
     activePrisonSentences = BeautifulSoup(browser.find_element_by_id("pnlPASentences").get_attribute('innerHTML'),
                                           'html.parser')
-    for child in activePrisonSentences.findChildren("div"):
-        text = child.text
-        if not isinstance(child.next_sibling, NavigableString):
-            childText = child.next_sibling.text.strip()
-            if "Sentence" in text:
-                if record.offense is not None:
-                    inmate.addRecord(record)
-                    record = InmateRecord()
-                    record.status = RecordStatus(1)
-                    record.state = "MI"
-                    record.recordNumber = recordNumber
-            elif "Offense" in text:
-                record.offense = childText
-            elif "Date of Offense" in text:
-                DOF = childText.split("/")
-                record.dateOfOffense = Date(DOF[2], DOF[0], DOF[1])
-            elif "County" in text:
-                record.county = childText
-
+    extractSoup(inmate, activePrisonSentences, 1, recordNumber)
 
     inactivePrisonSentences = BeautifulSoup(browser.find_element_by_id("pnlPISentences").get_attribute('innerHTML'),
                                             'html.parser')
-    for child in inactivePrisonSentences.findChildren("div"):
-        text = child.text
-        if not isinstance(child.next_sibling, NavigableString):
-            childText = child.next_sibling.text.strip()
-            if "Sentence" in text:
-                if record.offense is not None:
-                    inmate.addRecord(record)
-                    record = InmateRecord()
-                    record.status = RecordStatus(0)
-                    record.state = "MI"
-                    record.recordNumber = recordNumber
-            elif "Offense" in text:
-                record.offense = childText
-            elif "Date of Offense" in text:
-                DOF = childText.split("/")
-                record.dateOfOffense = Date(DOF[2], DOF[0], DOF[1])
-            elif "County" in text:
-                record.county = childText
+    extractSoup(inmate, inactivePrisonSentences, 0, recordNumber)
 
 
     activeProbationSentences = BeautifulSoup(browser.find_element_by_id("pnlRASentences").get_attribute('innerHTML'),
                                              'html.parser')
-    for child in activeProbationSentences.findChildren("div"):
-        text = child.text
-        if not isinstance(child.next_sibling, NavigableString):
-            childText = child.next_sibling.text.strip()
-            if "Sentence" in text:
-                if record.offense is not None:
-                    inmate.addRecord(record)
-                    record = InmateRecord()
-                    record.status = RecordStatus(2)
-                    record.state = "MI"
-                    record.recordNumber = recordNumber
-            elif "Offense" in text:
-                record.offense = childText
-            elif "Date of Offense" in text:
-                DOF = childText.split("/")
-                record.dateOfOffense = Date(DOF[2], DOF[0], DOF[1])
-            elif "County" in text:
-                record.county = childText
+    extractSoup(inmate, activeProbationSentences, 2, recordNumber)
 
 
     inactiveProbationSentences = BeautifulSoup(browser.find_element_by_id("pnlRISentences").get_attribute('innerHTML'),
                                             'html.parser')
-    for child in inactiveProbationSentences.findChildren("div"):
+    extractSoup(inmate, inactiveProbationSentences, 0, recordNumber)
+
+
+    # saves profile to the database
+    writeToDB(inmate)
+    browser.back()
+    return inmate.name.first + " " + inmate.name.last
+
+def extractSoup(inmate, soup, recordStatus, recordNumber):
+    record = InmateRecord()
+    for child in soup.findChildren("div"):
         text = child.text
         if not isinstance(child.next_sibling, NavigableString):
             childText = child.next_sibling.text.strip()
             if "Sentence" in text:
-                if record.offense is not None:
+                if record.state is not None and record.recordNumber is not None and record.dateOfOffense is not None\
+                        and record.county is not None:
                     inmate.addRecord(record)
                     record = InmateRecord()
-                    record.status = RecordStatus(2)
+                    record.status = RecordStatus(recordStatus)
                     record.state = "MI"
                     record.recordNumber = recordNumber
             elif "Offense" in text:
@@ -176,11 +136,8 @@ def saveInmateProfile(browser):
                 record.dateOfOffense = Date(DOF[2], DOF[0], DOF[1])
             elif "County" in text:
                 record.county = childText
-    inmate.addRecord(record)
-    # saves profile to the database
-    writeToDB(inmate)
-    browser.back()
-    return inmate.name.first + " " + inmate.name.last
+    if record.state is not None and record.recordNumber is not None:
+        inmate.addRecord(record)
 
 """
 TESTS:
