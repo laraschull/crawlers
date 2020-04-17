@@ -37,69 +37,38 @@ def baseCrawler(last, first):
 
     # each page holds up to 15 results, so finds how many pages there are in total
     number_pages = math.ceil(total_results/15)
-    print("number of pages: " + str(number_pages))
     profiles = []
-    # button = table_of_profiles.find_all("td", class_="smallPrint")[2].a.get('href')
-    # print(button)
 
     for each_page in range(number_pages):
-        if number_pages <= 3:
-            soup = BeautifulSoup(Browser.page_source, 'html.parser')
-            searchResults = soup.findAll("tbody")
-            table_of_profiles = (searchResults[4])
+        soup = BeautifulSoup(Browser.page_source, 'html.parser')
+        searchResults = soup.findAll("tbody")
+        table_of_profiles = (searchResults[4])
+        # index changes starting on third page of results and repeats the last result
+        # in the list as the first one on next page
+        if each_page < 2:
             all_profiles = table_of_profiles.find_all('tr')[1].find_all('tr')[1:]
-            print(all_profiles)
-            for row in range(len(all_profiles)):
-                profiles.append(all_profiles[row].a.get('href'))
-            if each_page != number_pages-1:
-                next_button = find_next_button(table_of_profiles, number_pages)
-                print(each_page)
-                print(next_button)
-                Browser.get('http://www.dpscs.state.md.us' + next_button)
         else:
-            soup = BeautifulSoup(Browser.page_source, 'html.parser')
-            searchResults = soup.findAll("tbody")
-            table_of_profiles = (searchResults[4])
+            # don't count first result in list
             all_profiles = table_of_profiles.find_all('tr')[1].find_all('tr')[2:]
-            # print(all_profiles)
-            for row in range(len(all_profiles)):
-                profiles.append(all_profiles[row].a.get('href'))
-            if each_page != number_pages-1:
-                next_button = find_next_button(table_of_profiles, each_page)
-                # print(each_page)
-                # print(next_button)
-                Browser.get('http://www.dpscs.state.md.us' + next_button)
+
+        for row in range(len(all_profiles)):
+            profiles.append(all_profiles[row].a.get('href'))
+
+        # only go to next page if not on next page
+        if each_page != number_pages - 1:
+            next_button = find_next_button(table_of_profiles, each_page)
+            Browser.get('http://www.dpscs.state.md.us' + next_button)
 
     print(len(profiles))
-
-    # http://www.dpscs.state.md.us/inmate/search.do?searchType=name&firstnm=&lastnm=smith
-    # http://www.dpscs.state.md.us/inmate/search.do?searchType=detail&id=301308963
-
-    # only getting profiles that are current
-    # for row in range(3, len(searchResults)):
-    #     print("NEW ROW")
-    #     print(searchResults[row])
-        # try:
-        #     profiles.append(row.a['href'])
-        # except:
-        #     continue
-    """
-    for i in range(len(profiles)):
-    # for i in range(1):
-        Browser.get("https://www.idoc.idaho.gov/content/prisons/offender_search/" + profiles[i])
-        profilePage = BeautifulSoup(Browser.page_source, 'html.parser')
-        saveInmateProfile(profilePage, Browser)
-        Browser.find_element_by_xpath("//*[@id='main']/div[1]/a[4]")
-    """
     Browser.quit()
+
+
 def find_next_button(table_of_profiles, page_number):
-    if(page_number >1):
-        print(len(table_of_profiles.find_all("td", class_="smallPrint")[2].find_all("a")))
-        print(table_of_profiles.find_all("td", class_="smallPrint")[2].find_all("a"))
-    # if page_number > 2:
-    return table_of_profiles.find_all("td", class_="smallPrint")[2].a.get('href')
-    # else:
-    #     return table_of_profiles.find_all("td", class_="smallPrint")[3].a.get('href')
+    if page_number == 0:
+        return table_of_profiles.find_all("td", class_="smallPrint")[2].a.get('href')
+    else:
+        return table_of_profiles.find_all("td", class_="smallPrint")[2].find_all("a")[2].get('href')
+
 
 def saveInmateProfile(soup, browser):
     inmate = Inmate()  # inmate profile
@@ -177,4 +146,4 @@ def saveInmateProfile(soup, browser):
     return inmate.name
 
 
-baseCrawler("Lee", "")
+baseCrawler("", "John")
