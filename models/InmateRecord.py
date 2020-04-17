@@ -16,7 +16,9 @@ class InmateRecord:
         self.inmateId = None  # optional number that may be found on some databases
         self.admissionDate = None
         self.sentenceDate = None
-        self.maxReleaseDate = None
+        self.crimeDate = None 
+        self.minReleaseDate = None 
+        self.maxReleaseDate = None 
         self.estReleaseDate = None
         self.paroleEligibilityDate = None
         self.nextParoleHearingDate = None
@@ -27,6 +29,7 @@ class InmateRecord:
         self.status = RecordStatus.UNDEFINED
         self.currentSupervisionStatus = None
         self.offense = ""
+        self.statute = None # listed on KY website 
 
     def __str__(self):
         return str(self.getDict())
@@ -42,10 +45,14 @@ class InmateRecord:
         return self.generatedID
 
     def getDict(self):
+        if(not isinstance(self.crimeDate, Date) and self.crimeDate is not None):
+            self.crimeDate = Date(self.crimeDate.year, self.crimeDate.month, self.crimeDate.day)
         if(not isinstance(self.admissionDate, Date) and self.admissionDate is not None):
             self.admissionDate = Date(self.admissionDate.year, self.admissionDate.month, self.admissionDate.day)
         if (not isinstance(self.sentenceDate, Date) and self.sentenceDate is not None):
             self.sentenceDate = Date(self.sentenceDate.year, self.sentenceDate.month, self.sentenceDate.day)
+        if (not isinstance(self.minReleaseDate, Date) and self.minReleaseDate is not None):
+            self.minReleaseDate = Date(self.minReleaseDate.year, self.minReleaseDate.month, self.minReleaseDate.day)
         if (not isinstance(self.maxReleaseDate, Date) and self.maxReleaseDate is not None):
             self.maxReleaseDate = Date(self.maxReleaseDate.year, self.maxReleaseDate.month, self.maxReleaseDate.day)
         if (not isinstance(self.admissionDate, Date) and self.estReleaseDate is not None):
@@ -56,8 +63,10 @@ class InmateRecord:
             generate_record_id(self.state, self.recordNumber),  # db key!
             "inmateID": self.inmateId,  # db key!
             "recordNumber": self.recordNumber,
+            "crimeDate": self.crimeDate.getDict() if self.crimeDate is not None else None,
             "admissionDate": self.admissionDate.getDict() if self.admissionDate is not None else None,
             "sentenceDate": self.sentenceDate.getDict() if self.sentenceDate is not None else None,
+            "minReleaseDate": self.minReleaseDate.getDict() if self.minReleaseDate is not None else None,
             "maxReleaseDate": self.maxReleaseDate.getDict() if self.maxReleaseDate is not None else None,
             "estReleaseDate": self.estReleaseDate.getDict() if self.estReleaseDate is not None else None,
             "paroleEligibilityDate": self.paroleEligibilityDate,
@@ -69,6 +78,7 @@ class InmateRecord:
             "status": self.status.value,
             "supervisionStatus": self.currentSupervisionStatus,
             "offense": self.offense,
+            "statute": self.statute,
         }
 
     def addFacility(self, facility):
