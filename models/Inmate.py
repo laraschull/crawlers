@@ -14,6 +14,7 @@ class Inmate:
         self.height = None 
         self.weight = None
         self.hairColor = None
+        self.aliases = []
 
     def getGeneratedID(self):
         if (len(self.generatedID) == 0):
@@ -37,5 +38,6 @@ class Inmate:
                 "eyecolor": self.eyeColor,
                 "height": self.height,
                 "weight": self.weight,
-                "hairColor": self.hairColor
+                "hairColor": self.hairColor,
+                "aliases": [alias.getDict() for alias in self.aliases]
         }

@@ -6,7 +6,7 @@ class RecordStatus(Enum):
     UNDEFINED = -1
     INACTIVE = 0
     ACTIVE = 1
-    PAROLE = 2
+    SUPERVISION = 2  # to include both probation (pre-incarceration) + parole (post-incarceration)
 
 class InmateRecord:
     status = RecordStatus
@@ -30,6 +30,9 @@ class InmateRecord:
         self.currentSupervisionStatus = None
         self.offense = ""
         self.statute = None # listed on KY website 
+        self.supervisionStart = None
+        self.supervisionEnd = None 
+        self.felonyClass = None 
 
     def __str__(self):
         return str(self.getDict())
@@ -55,9 +58,13 @@ class InmateRecord:
             self.minReleaseDate = Date(self.minReleaseDate.year, self.minReleaseDate.month, self.minReleaseDate.day)
         if (not isinstance(self.maxReleaseDate, Date) and self.maxReleaseDate is not None):
             self.maxReleaseDate = Date(self.maxReleaseDate.year, self.maxReleaseDate.month, self.maxReleaseDate.day)
-        if (not isinstance(self.admissionDate, Date) and self.estReleaseDate is not None):
+        if (not isinstance(self.estReleaseDate, Date) and self.estReleaseDate is not None):
             self.estReleaseDate = Date(self.estReleaseDate.year, self.estReleaseDate.month, self.estReleaseDate.day)
-
+        if(not isinstance(self.supervisionStart, Date) and self.supervisionStart is not None):
+            self.supervisionStart = Date(self.supervisionStart.year, self.supervisionStart.month, self.supervisionStart.day)
+        if(not isinstance(self.supervisionEnd, Date) and self.supervisionEnd is not None):
+            self.supervisionEnd = Date(self.supervisionEnd.year, self.supervisionEnd.month, self.supervisionEnd.day)
+        
         return{
             "_id": self.generatedID if self.generatedID is not None else
             generate_record_id(self.state, self.recordNumber),  # db key!
@@ -79,6 +86,9 @@ class InmateRecord:
             "supervisionStatus": self.currentSupervisionStatus,
             "offense": self.offense,
             "statute": self.statute,
+            "supervisionStart": self.supervisionStart.getDict() if self.supervisionStart is not None else None,
+            "supervisionEnd": self.supervisionEnd.getDict() if self.supervisionEnd is not None else None,
+            "felonyClass": self.felonyClass
         }
 
     def addFacility(self, facility):

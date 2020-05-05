@@ -12,7 +12,7 @@ from utils.updater import *
 chrome_options = Options()
 # chrome_options.add_argument("--headless")  # uncomment if you want chromedriver to not render
 # browser = webdriver.Chrome(".\chromedriver", options=chrome_options)  # for MAC
-browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
+# browser = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe", options=chrome_options)  # for Windows
 
 baseUrl = "http://www.dcor.state.ga.us/GDC/OffenderQuery/jsp/OffQryForm.jsp?Institution="
 
